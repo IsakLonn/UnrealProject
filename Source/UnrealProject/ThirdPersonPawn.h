@@ -9,6 +9,7 @@
 #include "Components/SkeletalMeshComponent.h"
 #include "Camera/CameraComponent.h"
 #include "MoveComponent.h"
+#include "CamComponent.h"
 #include "ThirdPersonPawn.generated.h"
 
 
@@ -27,10 +28,6 @@ public:
 	//sets rotation input up/down
 	UFUNCTION(BlueprintCallable)
 	void SetRotationInputUD(float Value);
-
-	//gets the move component
-	UFUNCTION(BlueprintCallable)
-	UMoveComponent* GetMoveComponent();
 
 protected:
 	// Called when the game starts or when spawned
@@ -63,6 +60,9 @@ public:
 
 	UPROPERTY(Instanced, EditDefaultsOnly, BlueprintReadOnly)
 	UMoveComponent* MoveComponent;
+
+	UPROPERTY(Instanced, EditDefaultsOnly, BlueprintReadOnly)
+	UCamComponent* CamComponent;
 	
 	UPROPERTY(EditAnywhere, meta=(ClampMin="-89", ClampMax="-30"), Category = "Camera rotation settings")
 	float CameraUDMinPitch = -89;

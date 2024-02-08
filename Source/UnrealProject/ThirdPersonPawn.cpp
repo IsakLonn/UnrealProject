@@ -21,6 +21,9 @@ AThirdPersonPawn::AThirdPersonPawn()
 	MoveComponent = CreateDefaultSubobject<UMoveComponent>(TEXT("MoveComponent"));
 	MoveComponent->SetupAttachment(RootComponent);	
 
+	CamComponent = CreateDefaultSubobject<UCamComponent>(TEXT("CamComponent"));
+	CamComponent->SetupAttachment(RootComponent);
+
 	CameraParent = CreateDefaultSubobject<USpringArmComponent>(TEXT("CameraParent"));
 	CameraParent->SetupAttachment(CameraForward);
 
@@ -42,15 +45,11 @@ void AThirdPersonPawn::SetRotationInputUD(float Value)
 	RotationInput.X = Value;
 }
 
-UMoveComponent* AThirdPersonPawn::GetMoveComponent()
-{
-	return MoveComponent;
-}
-
 // Called when the game starts or when spawned
 void AThirdPersonPawn::BeginPlay()
 {
 	Super::BeginPlay();
+	CamComponent->Setup(CameraForward, CameraParent);
 }
 
 void AThirdPersonPawn::TryRotateCamera(float DeltaTime)
@@ -70,7 +69,7 @@ void AThirdPersonPawn::TryRotateCamera(float DeltaTime)
 void AThirdPersonPawn::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
-	TryRotateCamera(DeltaTime);
+	//TryRotateCamera(DeltaTime);
 }
 
 // Called to bind functionality to input

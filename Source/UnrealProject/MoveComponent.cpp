@@ -22,11 +22,6 @@ void UMoveComponent::BeginPlay()
 	VisualsDefaultRotation = Orientation->GetRelativeRotation();
 	// ...
 	SetMovementSpeed(WalkSpeed);
-
-	UE_LOG(LogTemp, Warning, TEXT("The boolean value is %s"), (Pawn != nullptr ? TEXT("true") : TEXT("false")));
-	UE_LOG(LogTemp, Warning, TEXT("The boolean value is %s"), (Forward != nullptr ? TEXT("true") : TEXT("false")));
-	UE_LOG(LogTemp, Warning, TEXT("The boolean value is %s"), (Right != nullptr ? TEXT("true") : TEXT("false")));
-	UE_LOG(LogTemp, Warning, TEXT("The boolean value is %s"), (Orientation != nullptr ? TEXT("true") : TEXT("false")));
 	
 }
 
