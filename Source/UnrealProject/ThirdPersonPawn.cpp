@@ -15,61 +15,38 @@ AThirdPersonPawn::AThirdPersonPawn()
 	PlayerMesh = CreateDefaultSubobject<USkeletalMeshComponent>(TEXT("PlayerMesh"));
 	PlayerMesh->SetupAttachment(RootComponent);
 
-	CameraForward = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("CameraForward"));
-	CameraForward->SetupAttachment(RootComponent);
+	PlayerForwardRight = CreateDefaultSubobject<USceneComponent>(TEXT("PlayerForwardRight"));
+	PlayerForwardRight->SetupAttachment(RootComponent);
 
 	MoveComponent = CreateDefaultSubobject<UMoveComponent>(TEXT("MoveComponent"));
 	MoveComponent->SetupAttachment(RootComponent);	
 
-	CamComponent = CreateDefaultSubobject<UCamComponent>(TEXT("CamComponent"));
-	CamComponent->SetupAttachment(RootComponent);
+	CamControllerComponent = CreateDefaultSubobject<UCamControllerComponent>(TEXT("CamController"));
+	CamControllerComponent->SetupAttachment(RootComponent);
 
-	CameraParent = CreateDefaultSubobject<USpringArmComponent>(TEXT("CameraParent"));
-	CameraParent->SetupAttachment(CameraForward);
+	CameraBoom = CreateDefaultSubobject<USpringArmComponent>(TEXT("CameraBoom"));
+	CameraBoom->SetupAttachment(RootComponent);
 
-	Camera = CreateDefaultSubobject<UCameraComponent>(TEXT("ThirdPersonCamera"));
-	Camera->SetupAttachment(CameraParent);
+	Camera = CreateDefaultSubobject<UCameraComponent>(TEXT("Camera"));
+	Camera->SetupAttachment(CameraBoom);
 
-	MoveComponent->Setup(this, CameraForward, CameraParent, PlayerMesh);
-
-}
-
-
-void AThirdPersonPawn::SetRotationInputLR(float Value)
-{
-	RotationInput.Y = Value;
-}
-
-void AThirdPersonPawn::SetRotationInputUD(float Value)
-{
-	RotationInput.X = Value;
+	
 }
 
 // Called when the game starts or when spawned
 void AThirdPersonPawn::BeginPlay()
 {
 	Super::BeginPlay();
-	CamComponent->Setup(CameraForward, CameraParent);
-}
 
-void AThirdPersonPawn::TryRotateCamera(float DeltaTime)
-{
-	auto CamParentRot = CameraParent->GetRelativeRotation();
-	auto CamForwardRot = CameraForward->GetRelativeRotation();
-
-	CamForwardRot.Yaw += RotationInput.Y * CamRotSpeed * DeltaTime;
-	CamParentRot.Pitch += RotationInput.X * CamRotSpeed * DeltaTime;
-	CamParentRot.Pitch = FMath::Clamp(CamParentRot.Pitch, CameraUDMinPitch, CameraUDMaxPitch);
-
-	CameraParent->SetRelativeRotation(CamParentRot);
-	CameraForward->SetRelativeRotation(CamForwardRot);
+	//setup references for other components
+	MoveComponent->Setup(this, PlayerMesh, PlayerForwardRight);
+	CamControllerComponent->Setup(CameraBoom, PlayerForwardRight);
 }
 
 // Called every frame
 void AThirdPersonPawn::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
-	//TryRotateCamera(DeltaTime);
 }
 
 // Called to bind functionality to input

@@ -9,7 +9,7 @@
 #include "Components/SkeletalMeshComponent.h"
 #include "Camera/CameraComponent.h"
 #include "MoveComponent.h"
-#include "CamComponent.h"
+#include "CamControllerComponent.h"
 #include "ThirdPersonPawn.generated.h"
 
 
@@ -21,18 +21,10 @@ class UNREALPROJECT_API AThirdPersonPawn : public APawn
 public:
 	// Sets default values for this pawn's properties
 	AThirdPersonPawn();
-public:
-	//sets rotation input left/right
-	UFUNCTION(BlueprintCallable)
-	void SetRotationInputLR(float Value);
-	//sets rotation input up/down
-	UFUNCTION(BlueprintCallable)
-	void SetRotationInputUD(float Value);
 
 protected:
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
-	void TryRotateCamera(float DeltaTime);
 
 protected:
 	
@@ -50,10 +42,10 @@ public:
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
 	USkeletalMeshComponent* PlayerMesh;
 
-	UStaticMeshComponent* CameraForward;
+	USceneComponent* PlayerForwardRight;
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
-	USpringArmComponent* CameraParent;
+	USpringArmComponent* CameraBoom;
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
 	UCameraComponent* Camera;
@@ -62,17 +54,6 @@ public:
 	UMoveComponent* MoveComponent;
 
 	UPROPERTY(Instanced, EditDefaultsOnly, BlueprintReadOnly)
-	UCamComponent* CamComponent;
-	
-	UPROPERTY(EditAnywhere, meta=(ClampMin="-89", ClampMax="-30"), Category = "Camera rotation settings")
-	float CameraUDMinPitch = -89;
-	UPROPERTY(EditAnywhere, meta=(ClampMin="30", ClampMax="89"), Category = "Camera rotation settings")
-	float CameraUDMaxPitch = 89;
-	UPROPERTY(EditAnywhere, Category = "Camera Rotation settings")
-	float CamRotSpeed = 1;
+	UCamControllerComponent* CamControllerComponent;
 
-	
-private:
-	// vector for player rotation input
-	FVector RotationInput;
 };

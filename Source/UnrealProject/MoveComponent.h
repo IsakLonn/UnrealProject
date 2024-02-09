@@ -21,13 +21,10 @@ protected:
 	virtual void BeginPlay() override;
 	//root pawn
 	APawn* Pawn;
-	//component for forward vector
-	USceneComponent* Forward;
-	//component for right vector
-	USceneComponent* Right;
 	//component for mesh, used for rotating
 	USceneComponent* Orientation;
-
+	//component for getting a right and forward vector for orientation
+	USceneComponent* PlayerForwardRight;
 	//sets movement input left/right
 	UFUNCTION(BlueprintCallable)
 	void SetMovementInputLR(float Value);
@@ -54,6 +51,7 @@ protected:
 
 	FVector MovementInput;
 	FRotator VisualsDefaultRotation;
+	
 
 	bool bCanMove = true;
 	bool bCanRotate = true;
@@ -71,6 +69,6 @@ public:
 
 	//sets up variables to be used by this component
 	UFUNCTION(BlueprintCallable)
-	void Setup(APawn* _Pawn, USceneComponent* _Forward, USceneComponent* _Right, USceneComponent* _Orientation);
+	void Setup(APawn* _Pawn, USceneComponent* _Orientation, USceneComponent* _PlayerForwardRight);
 		
 };

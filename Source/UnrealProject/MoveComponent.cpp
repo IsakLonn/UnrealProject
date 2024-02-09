@@ -19,7 +19,7 @@ UMoveComponent::UMoveComponent()
 void UMoveComponent::BeginPlay()
 {
 	Super::BeginPlay();
-	VisualsDefaultRotation = Orientation->GetRelativeRotation();
+	
 	// ...
 	SetMovementSpeed(WalkSpeed);
 	
@@ -27,9 +27,10 @@ void UMoveComponent::BeginPlay()
 
 void UMoveComponent::OrientVisualsWithMovement()
 {
+	if (Pawn == nullptr || Orientation == nullptr || PlayerForwardRight == nullptr) return;
 	if (!bCanRotate) return;
 	if (MovementInput.X == 0 && MovementInput.Y == 0) return; // don't rotate player if no input exists
-	FVector LookLocation = (Forward->GetForwardVector() * MovementInput.X) + (Right->GetRightVector() * MovementInput.Y);
+	FVector LookLocation = (PlayerForwardRight->GetForwardVector() * MovementInput.X) + (PlayerForwardRight->GetRightVector() * MovementInput.Y);
 	FVector ActorLocation = Pawn->GetActorLocation();
 	FRotator Rotation = UKismetMathLibrary::FindLookAtRotation(ActorLocation, ActorLocation + LookLocation);
 	Rotation += VisualsDefaultRotation;
@@ -48,9 +49,14 @@ void UMoveComponent::SetMovementSpeed(float speed) { currentSpeed = speed; }
 
 void UMoveComponent::TryMovePlayer(float DeltaTime)
 {
+	if (Pawn == nullptr || PlayerForwardRight == nullptr) return;
 	if (!bCanMove) return;
+
 	FVector NewLocation = Pawn->GetActorLocation();
-	NewLocation += ((Forward->GetForwardVector() * MovementInput.X) + (Right->GetRightVector() * MovementInput.Y)) * currentSpeed;
+	FVector _Forward = PlayerForwardRight->GetForwardVector();
+	FVector _Right = PlayerForwardRight->GetRightVector();
+
+	NewLocation += ((_Forward * MovementInput.X) + (_Right * MovementInput.Y)) * currentSpeed;
 	Pawn->SetActorLocation(NewLocation);
 }
 
@@ -62,11 +68,11 @@ void UMoveComponent::TickComponent(float DeltaTime, ELevelTick TickType, FActorC
 	// ...
 }
 
-void UMoveComponent::Setup(APawn* _Pawn, USceneComponent* _Forward, USceneComponent* _Right, USceneComponent* _Orientation)
+void UMoveComponent::Setup(APawn* _Pawn, USceneComponent* _Orientation, USceneComponent* _PlayerForwardRight)
 {
 	Pawn = _Pawn;
-	Forward = _Forward;
-	Right = _Right;
 	Orientation = _Orientation;
+	PlayerForwardRight = _PlayerForwardRight;
+	VisualsDefaultRotation = Orientation->GetRelativeRotation();
 }
 

@@ -4,17 +4,19 @@
 
 #include "CoreMinimal.h"
 #include "Components/SceneComponent.h"
-#include "CamComponent.generated.h"
+#include "GameFramework/SpringArmComponent.h"
+#include "CamControllerComponent.generated.h"
+
 
 
 UCLASS( ClassGroup=(Custom), meta=(BlueprintSpawnableComponent, ToolTip = "component for rotating a camera, be sure to set its variables by calling its setup function") )
-class UNREALPROJECT_API UCamComponent : public USceneComponent
+class UNREALPROJECT_API UCamControllerComponent : public USceneComponent
 {
 	GENERATED_BODY()
 
 public:	
 	// Sets default values for this component's properties
-	UCamComponent();
+	UCamControllerComponent();
 
 protected:
 	// Called when the game starts
@@ -40,16 +42,16 @@ public:
 
 	//sets up references to be used by component
 	UFUNCTION(BlueprintCallable)
-	void Setup(USceneComponent* _CamLR, USceneComponent* _CamUD);
+	void Setup(USpringArmComponent* _CameraBoom, USceneComponent* _PlayerForwardRight);
 
 private:
 	// vector for player rotation input
 	FVector RotationInput;
 
-	//reference to component rotating left/right
-	USceneComponent* CamLR;
 	//reference to component rotating up/down
-	USceneComponent* CamUD;
+	USpringArmComponent* CameraBoom;
+
+	USceneComponent* PlayerForwardRight;
 
 	void TryRotateCamera(float DeltaTime);
 };
