@@ -10,7 +10,6 @@ UMoveComponent::UMoveComponent()
 	// Set this component to be initialized when the game starts, and to be ticked every frame.  You can turn these features
 	// off to improve performance if you don't need them.
 	PrimaryComponentTick.bCanEverTick = true;
-
 	// ...
 }
 
@@ -20,43 +19,37 @@ void UMoveComponent::BeginPlay()
 {
 	Super::BeginPlay();
 	
-	// ...
-	SetMovementSpeed(WalkSpeed);
-	
 }
 
 void UMoveComponent::OrientVisualsWithMovement()
 {
-	if (Pawn == nullptr || Orientation == nullptr || PlayerForwardRight == nullptr) return;
-	if (!bCanRotate) return;
-	if (MovementInput.X == 0 && MovementInput.Y == 0) return; // don't rotate player if no input exists
-	FVector LookLocation = (PlayerForwardRight->GetForwardVector() * MovementInput.X) + (PlayerForwardRight->GetRightVector() * MovementInput.Y);
+	if (Pawn == nullptr || Orientation == nullptr || DirectionalComponent == nullptr) return;
+	if (ControllerInput.X == 0 && ControllerInput.Y == 0) return; // don't rotate player if no input exists
+	FVector LookLocation = (DirectionalComponent->GetForwardVector() * ControllerInput.X) + (DirectionalComponent->GetRightVector() * ControllerInput.Y);
 	FVector ActorLocation = Pawn->GetActorLocation();
 	FRotator Rotation = UKismetMathLibrary::FindLookAtRotation(ActorLocation, ActorLocation + LookLocation);
 	Rotation += VisualsDefaultRotation;
 	Orientation->SetRelativeRotation(Rotation);
 }
 
-void UMoveComponent::SetMovementInputLR(float Value) { MovementInput.Y = Value; }
+void UMoveComponent::SetControllerInputLR(float Value) { ControllerInput.Y = Value; }
 
-void UMoveComponent::SetMovementInputFB(float Value) { MovementInput.X = Value; }
+void UMoveComponent::SetControllerInputFB(float Value) { ControllerInput.X = Value; }
 
-void UMoveComponent::ToggleRotation(bool toggle) { bCanRotate = toggle; }
+void UMoveComponent::SetControllerInputUD(float Value) { ControllerInput.Z = Value; }
 
-void UMoveComponent::ToggleMovement(bool toggle) { bCanMove = toggle; }
+void UMoveComponent::SetActorSpeed(float speed) { ActorSpeed = speed; }
 
-void UMoveComponent::SetMovementSpeed(float speed) { currentSpeed = speed; }
-
-void UMoveComponent::TryMovePlayer(float DeltaTime)
+void UMoveComponent::TryMovePawn(float DeltaTime)
 {
-	if (Pawn == nullptr || PlayerForwardRight == nullptr) return;
-	if (!bCanMove) return;
-
+	if (Pawn == nullptr || DirectionalComponent == nullptr) return;
+	UE_LOG(LogTemp, Warning, TEXT("The vector value is: %s"), *ControllerInput.ToString());
 	FVector NewLocation = Pawn->GetActorLocation();
-	FVector _Forward = PlayerForwardRight->GetForwardVector();
-	FVector _Right = PlayerForwardRight->GetRightVector();
+	FVector _Forward = DirectionalComponent->GetForwardVector();
+	FVector _Right = DirectionalComponent->GetRightVector();
+	FVector _Up = DirectionalComponent->GetUpVector();
 
-	NewLocation += ((_Forward * MovementInput.X) + (_Right * MovementInput.Y)) * currentSpeed;
+	NewLocation += ((_Forward * ControllerInput.X) + (_Right * ControllerInput.Y) + (_Up * ControllerInput.Z)) * ActorSpeed;
 	Pawn->SetActorLocation(NewLocation);
 }
 
@@ -64,15 +57,46 @@ void UMoveComponent::TryMovePlayer(float DeltaTime)
 void UMoveComponent::TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction)
 {
 	Super::TickComponent(DeltaTime, TickType, ThisTickFunction);
-	TryMovePlayer(DeltaTime);
+	TryMovePawn(DeltaTime);
+	if (OrientWithMovement) OrientVisualsWithMovement();
 	// ...
 }
 
-void UMoveComponent::Setup(APawn* _Pawn, USceneComponent* _Orientation, USceneComponent* _PlayerForwardRight)
+void UMoveComponent::Setup(APawn* _Pawn, USceneComponent* _Orientation, USceneComponent* _DirectionalComponent)
 {
+	SetPawn(_Pawn);
+	SetOrientation(_Orientation);
+	SetDirectionalComponent(_DirectionalComponent);
+}
+
+void UMoveComponent::SetPawn(APawn* _Pawn)
+{
+	if (_Pawn == nullptr)
+	{
+		UE_LOG(LogTemp, Fatal, TEXT("Pawn sent in to SetPawn is null"));
+		return;
+	}
 	Pawn = _Pawn;
+}
+
+void UMoveComponent::SetOrientation(USceneComponent* _Orientation)
+{
+	if (_Orientation == nullptr)
+	{
+		UE_LOG(LogTemp, Fatal, TEXT("Orientation sent in to SetOrientation is null"));
+		return;
+	}
 	Orientation = _Orientation;
-	PlayerForwardRight = _PlayerForwardRight;
+}
+
+void UMoveComponent::SetDirectionalComponent(USceneComponent* _DirectionalComponent)
+{
+	if (_DirectionalComponent == nullptr)
+	{
+		UE_LOG(LogTemp, Fatal, TEXT("DirectionalComponent sent in to SetDirectionalComponent is null"));
+		return;
+	}
+	DirectionalComponent = _DirectionalComponent;
 	VisualsDefaultRotation = Orientation->GetRelativeRotation();
 }
 

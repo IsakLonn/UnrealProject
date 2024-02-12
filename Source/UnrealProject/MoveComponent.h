@@ -7,7 +7,7 @@
 #include "MoveComponent.generated.h"
 
 //
-UCLASS( ClassGroup=(Custom), meta=(BlueprintSpawnableComponent, ToolTip = "component for moving a pawn, be sure to set its variables by calling its setup function") )
+UCLASS( ClassGroup=(Custom), meta=(BlueprintSpawnableComponent, ToolTip = "component for moving a actor, be sure to set its variables by calling its Setup/Set function/s") )
 class UNREALPROJECT_API UMoveComponent : public USceneComponent
 {
 	GENERATED_BODY()
@@ -23,52 +23,44 @@ protected:
 	APawn* Pawn;
 	//component for mesh, used for rotating
 	USceneComponent* Orientation;
-	//component for getting a right and forward vector for orientation
-	USceneComponent* PlayerForwardRight;
-	//sets movement input left/right
-	UFUNCTION(BlueprintCallable)
-	void SetMovementInputLR(float Value);
-	//sets movement input forward/backward
-	UFUNCTION(BlueprintCallable)
-	void SetMovementInputFB(float Value);
+	//component for getting the direction to go in (up/forward/right)
+	USceneComponent* DirectionalComponent;
+	
+	//current input from controller
+	FVector ControllerInput;
+	//starting rotation for visuals/mesh
+	FRotator VisualsDefaultRotation;
 
-	//toggles if the mesh can rotate or not
-	UFUNCTION(BlueprintCallable)
-	void ToggleRotation(bool toggle);
-	//toggles if the pawn can move or not
-	UFUNCTION(BlueprintCallable)
-	void ToggleMovement(bool toggle);
+	void TryMovePawn(float DeltaTime);
 
-	//toggles if the pawn can move or not
-	UFUNCTION(BlueprintCallable)
-	void SetMovementSpeed(float speed);
-
-	//makes the mesh look where it is moving
-	UFUNCTION(BlueprintCallable)
 	void OrientVisualsWithMovement();
 
-	void TryMovePlayer(float DeltaTime);
-
-	FVector MovementInput;
-	FRotator VisualsDefaultRotation;
+	UPROPERTY(EditAnywhere, Category = "Movement settings")
+	float ActorSpeed;
 	
-
-	bool bCanMove = true;
-	bool bCanRotate = true;
-
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Movement settings")
-	float WalkSpeed = 10;
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Movement settings")
-	float SprintSpeed = 10;
-
-	float currentSpeed;
 
 public:	
 	// Called every frame
 	virtual void TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction) override;
 
 	//sets up variables to be used by this component
-	UFUNCTION(BlueprintCallable)
-	void Setup(APawn* _Pawn, USceneComponent* _Orientation, USceneComponent* _PlayerForwardRight);
+	//_Pawn = which pawn it controls
+	//_Orientation = "visuals/mesh" of the Actor
+	//_DirectionalComponent = component used to get forward/right/up directions
+	void Setup(APawn* _Pawn, USceneComponent* _Orientation, USceneComponent* _DirectionalComponent);
+	void SetPawn(APawn* _Pawn);
+	void SetOrientation(USceneComponent* _Orientation);
+	void SetDirectionalComponent(USceneComponent* _DirectionalComponent);
+	//sets value for left/right movement
+	void SetControllerInputLR(float Value);
+	//sets value for forward/back movement
+	void SetControllerInputFB(float Value);
+	//sets value for up/down movement
+	void SetControllerInputUD(float Value);
+	//makes the mesh look where it is moving	
+	//sets value for actors speed
+	void SetActorSpeed(float speed);
+
+	bool OrientWithMovement = true;
 		
 };

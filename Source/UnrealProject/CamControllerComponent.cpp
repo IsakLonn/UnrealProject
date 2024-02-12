@@ -33,12 +33,11 @@ void UCamControllerComponent::TickComponent(float DeltaTime, ELevelTick TickType
 	
 }
 
-void UCamControllerComponent::Setup(USpringArmComponent* _CameraBoom, USceneComponent* _PlayerForwardRight)
+void UCamControllerComponent::Setup(USceneComponent* _RotatedComponent, USceneComponent* _DirectionalComponent, UCameraComponent* _Camera)
 {
-	CameraBoom = _CameraBoom;
-	PlayerForwardRight = _PlayerForwardRight;
-	UE_LOG(LogTemp, Warning, TEXT("The boolean value is %s"), (CameraBoom != nullptr ? TEXT("true") : TEXT("false")));
-	UE_LOG(LogTemp, Warning, TEXT("The boolean value is %s"), (PlayerForwardRight != nullptr ? TEXT("true") : TEXT("false")));
+	SetCamera(_Camera);
+	SetRotatedComponent(_RotatedComponent);
+	SetDirectionalComponent(_DirectionalComponent);
 }
 
 void UCamControllerComponent::SetRotationInputLR(float Value)
@@ -51,22 +50,52 @@ void UCamControllerComponent::SetRotationInputUD(float Value)
 	RotationInput.X = Value;
 }
 
+void UCamControllerComponent::SetRotatedComponent(USceneComponent* _RotatedComponent)
+{
+	if (_RotatedComponent == nullptr)
+	{
+		UE_LOG(LogTemp, Fatal, TEXT("CameraParent sent in to SetCameraParent is null"));
+		return;
+	}
+	RotatedComponent = _RotatedComponent;
+}
+
+void UCamControllerComponent::SetDirectionalComponent(USceneComponent* _DirectionalComponent)
+{
+	if (_DirectionalComponent == nullptr)
+	{
+		UE_LOG(LogTemp, Fatal, TEXT("DirectionalComponent sent in to SetDirectionalComponent is null"));
+		return;
+	}
+	DirectionalComponent = _DirectionalComponent;
+}
+
+void UCamControllerComponent::SetCamera(UCameraComponent* _Camera)
+{
+	if (_Camera == nullptr)
+	{
+		UE_LOG(LogTemp, Fatal, TEXT("Camera sent in to SetCamera is null"));
+		return;
+	}
+	Camera = _Camera;
+}
+
 void UCamControllerComponent::TryRotateCamera(float DeltaTime)
 {
-	if (CameraBoom == nullptr || PlayerForwardRight == nullptr) return;
+	if (RotatedComponent == nullptr || DirectionalComponent == nullptr) return;
 
-	auto NewRotation = CameraBoom->GetRelativeRotation();
+	auto NewRotation = RotatedComponent->GetRelativeRotation();
 
-	NewRotation.Yaw += RotationInput.Y * CamRotSpeed * DeltaTime;
-	NewRotation.Pitch += RotationInput.X * CamRotSpeed * DeltaTime;
+	if(bCanRotateLR)NewRotation.Yaw += RotationInput.Y * CamRotSpeed * DeltaTime;
+	if(bCanRotateUD)NewRotation.Pitch += RotationInput.X * CamRotSpeed * DeltaTime;
 	NewRotation.Pitch = FMath::Clamp(NewRotation.Pitch, CameraUDMinPitch, CameraUDMaxPitch);
 
-	CameraBoom->SetRelativeRotation(NewRotation);
+	RotatedComponent->SetRelativeRotation(NewRotation);
 
 	NewRotation.Pitch = 0;
 	NewRotation.Roll = 0;
 
-	PlayerForwardRight->SetRelativeRotation(NewRotation);
+	DirectionalComponent->SetRelativeRotation(NewRotation);
 
 }
 

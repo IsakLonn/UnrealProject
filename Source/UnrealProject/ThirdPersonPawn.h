@@ -12,7 +12,12 @@
 #include "CamControllerComponent.h"
 #include "ThirdPersonPawn.generated.h"
 
-
+UENUM(BlueprintType)
+enum Perspectives
+{
+  FPS     UMETA(DisplayName = "First person"),
+  TPS      UMETA(DisplayName = "Third person"),
+};
 UCLASS()
 class UNREALPROJECT_API AThirdPersonPawn : public APawn
 {
@@ -27,6 +32,64 @@ protected:
 	virtual void BeginPlay() override;
 
 protected:
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
+	UCapsuleComponent* Collider;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
+	USkeletalMeshComponent* PlayerMesh;
+
+	USceneComponent* DirectionalComponent;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
+	USpringArmComponent* TPSCameraBoom;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
+	UCameraComponent* TPSCamera;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
+	UCameraComponent* FPSCamera;
+
+	UPROPERTY(Instanced, EditDefaultsOnly)
+	UMoveComponent* MoveComponent;
+
+	UPROPERTY(Instanced, EditDefaultsOnly)
+	UCamControllerComponent* CamControllerComponent;
+
+	//sets value for left/right rotation
+	UFUNCTION(BlueprintCallable)
+	void SetRotationInputLR(float Value);
+	//sets value for up/down rotation
+	UFUNCTION(BlueprintCallable)
+	void SetRotationInputUD(float Value);
+
+	//sets value for left/right movement
+	UFUNCTION(BlueprintCallable)
+	void SetControllerInputLR(float Value);
+	//sets value for forward/back movement
+	UFUNCTION(BlueprintCallable)
+	void SetControllerInputFB(float Value);
+	//sets value for up/down movement
+	UFUNCTION(BlueprintCallable)
+	void SetControllerInputUD(float Value);
+	//toggles if the pawn can move or not
+	UFUNCTION(BlueprintCallable)
+	void ToggleMovement(bool Toggle);
+	//sets value for how fast the actor moves
+	UFUNCTION(BlueprintCallable)
+	void SetActorSpeed(float Speed);
+
+	UFUNCTION(BlueprintCallable)
+	void SetPerspective(Perspectives Perspective);
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Movement settings")
+	float WalkSpeed = 10;
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Movement settings")
+	float SprintSpeed = 10;
+
+	bool bCanMove = true;
+
+	UPROPERTY(BlueprintReadOnly)
+	TEnumAsByte<Perspectives> currentPerspective;
 	
 
 public:	
@@ -36,24 +99,6 @@ public:
 	// Called to bind functionality to input
 	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
 
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
-	UCapsuleComponent* Collider;
-
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
-	USkeletalMeshComponent* PlayerMesh;
-
-	USceneComponent* PlayerForwardRight;
-
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
-	USpringArmComponent* CameraBoom;
-
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
-	UCameraComponent* Camera;
-
-	UPROPERTY(Instanced, EditDefaultsOnly, BlueprintReadOnly)
-	UMoveComponent* MoveComponent;
-
-	UPROPERTY(Instanced, EditDefaultsOnly, BlueprintReadOnly)
-	UCamControllerComponent* CamControllerComponent;
+	
 
 };

@@ -15,8 +15,8 @@ AThirdPersonPawn::AThirdPersonPawn()
 	PlayerMesh = CreateDefaultSubobject<USkeletalMeshComponent>(TEXT("PlayerMesh"));
 	PlayerMesh->SetupAttachment(RootComponent);
 
-	PlayerForwardRight = CreateDefaultSubobject<USceneComponent>(TEXT("PlayerForwardRight"));
-	PlayerForwardRight->SetupAttachment(RootComponent);
+	DirectionalComponent = CreateDefaultSubobject<USceneComponent>(TEXT("DirectionalComponent"));
+	DirectionalComponent->SetupAttachment(RootComponent);
 
 	MoveComponent = CreateDefaultSubobject<UMoveComponent>(TEXT("MoveComponent"));
 	MoveComponent->SetupAttachment(RootComponent);	
@@ -24,11 +24,14 @@ AThirdPersonPawn::AThirdPersonPawn()
 	CamControllerComponent = CreateDefaultSubobject<UCamControllerComponent>(TEXT("CamController"));
 	CamControllerComponent->SetupAttachment(RootComponent);
 
-	CameraBoom = CreateDefaultSubobject<USpringArmComponent>(TEXT("CameraBoom"));
-	CameraBoom->SetupAttachment(RootComponent);
+	TPSCameraBoom = CreateDefaultSubobject<USpringArmComponent>(TEXT("CameraBoom"));
+	TPSCameraBoom->SetupAttachment(RootComponent);
 
-	Camera = CreateDefaultSubobject<UCameraComponent>(TEXT("Camera"));
-	Camera->SetupAttachment(CameraBoom);
+	TPSCamera = CreateDefaultSubobject<UCameraComponent>(TEXT("TPSCamera"));
+	TPSCamera->SetupAttachment(TPSCameraBoom);
+
+	FPSCamera = CreateDefaultSubobject<UCameraComponent>(TEXT("FPSCamera"));
+	FPSCamera->SetupAttachment(PlayerMesh);
 
 	
 }
@@ -39,8 +42,75 @@ void AThirdPersonPawn::BeginPlay()
 	Super::BeginPlay();
 
 	//setup references for other components
-	MoveComponent->Setup(this, PlayerMesh, PlayerForwardRight);
-	CamControllerComponent->Setup(CameraBoom, PlayerForwardRight);
+	MoveComponent->Setup(this, PlayerMesh, DirectionalComponent);
+	CamControllerComponent->Setup(TPSCameraBoom, DirectionalComponent, TPSCamera);
+
+	SetPerspective(TPS);
+	MoveComponent->SetActorSpeed(WalkSpeed);
+}
+
+void AThirdPersonPawn::SetRotationInputLR(float Value)
+{
+	CamControllerComponent->SetRotationInputLR(Value);
+}
+
+void AThirdPersonPawn::SetRotationInputUD(float Value)
+{
+	CamControllerComponent->SetRotationInputUD(Value);
+}
+
+void AThirdPersonPawn::SetControllerInputLR(float Value)
+{
+	if (!bCanMove) return;
+	MoveComponent->SetControllerInputLR(Value);
+}
+
+void AThirdPersonPawn::SetControllerInputFB(float Value)
+{
+	if (!bCanMove) return;
+	MoveComponent->SetControllerInputFB(Value);
+}
+
+void AThirdPersonPawn::SetControllerInputUD(float Value)
+{
+	if (!bCanMove) return;
+	MoveComponent->SetControllerInputUD(Value);
+}
+
+void AThirdPersonPawn::ToggleMovement(bool Toggle)
+{
+	bCanMove = Toggle;
+}
+
+void AThirdPersonPawn::SetActorSpeed(float Speed)
+{
+	MoveComponent->SetActorSpeed(Speed);
+}
+
+void AThirdPersonPawn::SetPerspective(Perspectives Perspective)
+{
+	currentPerspective = Perspective;
+	FPSCamera->SetActive(false);
+	TPSCamera->SetActive(false);
+	switch (Perspective)
+	{
+	case FPS:
+		FPSCamera->SetActive(true);
+		CamControllerComponent->SetCamera(FPSCamera);
+		CamControllerComponent->SetRotatedComponent(FPSCamera);
+		MoveComponent->OrientWithMovement = false;
+		CamControllerComponent->bCanRotateLR = false;
+		break;
+	case TPS:
+		TPSCamera->SetActive(true);
+		CamControllerComponent->SetCamera(TPSCamera);
+		CamControllerComponent->SetRotatedComponent(TPSCameraBoom);
+		MoveComponent->OrientWithMovement = true;
+		CamControllerComponent->bCanRotateLR = true;
+		break;
+	default:
+		break;
+	}
 }
 
 // Called every frame
