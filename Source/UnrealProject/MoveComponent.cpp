@@ -23,54 +23,35 @@ void UMoveComponent::BeginPlay()
 
 void UMoveComponent::OrientVisualsWithMovement()
 {
-	if (Pawn == nullptr || Orientation == nullptr || DirectionalComponent == nullptr) return;
-	if (ControllerInput.X == 0 && ControllerInput.Y == 0) return; // don't rotate player if no input exists
-	FVector LookLocation = (DirectionalComponent->GetForwardVector() * ControllerInput.X) + (DirectionalComponent->GetRightVector() * ControllerInput.Y);
-	FVector ActorLocation = Pawn->GetActorLocation();
-	FRotator Rotation = UKismetMathLibrary::FindLookAtRotation(ActorLocation, ActorLocation + LookLocation);
-	Rotation += VisualsDefaultRotation;
-	Orientation->SetRelativeRotation(Rotation);
+	// if (Pawn == nullptr || Mesh == nullptr || DirectionalComponent == nullptr) return;
+	// if (ControllerInput.X == 0 && ControllerInput.Y == 0) return; // don't rotate player if no input exists
+	// FVector LookLocation = (DirectionalComponent->GetForwardVector() * ControllerInput.X) + (DirectionalComponent->GetRightVector() * ControllerInput.Y);
+	// FVector ActorLocation = Pawn->GetActorLocation();
+	// FRotator Rotation = UKismetMathLibrary::FindLookAtRotation(ActorLocation, ActorLocation + LookLocation);
+	// Rotation += VisualsDefaultRotation;
+	// Mesh->SetRelativeRotation(Rotation);
 }
-
-void UMoveComponent::SetControllerInputLR(float Value) { ControllerInput.Y = Value; }
-
-void UMoveComponent::SetControllerInputFB(float Value) { ControllerInput.X = Value; }
-
-void UMoveComponent::SetControllerInputUD(float Value) { ControllerInput.Z = Value; }
 
 void UMoveComponent::SetActorSpeed(float speed) { ActorSpeed = speed; }
 
 void UMoveComponent::TryMovePawn(float DeltaTime)
 {
-	UE_LOG(LogTemp, Warning, TEXT("The Pawn value is %s"), ( Pawn != nullptr ? TEXT("true") : TEXT("false") ));
-	UE_LOG(LogTemp, Warning, TEXT("The DirectionalComponent value is %s"), ( DirectionalComponent != nullptr ? TEXT("true") : TEXT("false") ));
-	UE_LOG(LogTemp, Warning, TEXT("The ControllerComponent value is %s"), ( ControllerComponent != nullptr ? TEXT("true") : TEXT("false") ));
-	if (Pawn == nullptr || DirectionalComponent == nullptr || ControllerComponent == nullptr) return;
-	 FVector NewLocation = Pawn->GetActorLocation();
-	 FVector _Forward = ControllerComponent->GetForwardVector();
-	 FVector _Right = ControllerComponent->GetRightVector();
-	 FVector Input = ControllerComponent->GetControllerInput();
-	
-	 NewLocation += ((_Forward * Input.X) + (_Right * Input.Y)) * ActorSpeed;
-	 Pawn->SetActorLocation(NewLocation);
+	//check for nullptr references
+	if (Pawn == nullptr || Controller == nullptr) return;
 
-	// find out which way is forward
-	//const FRotator Rotation = ControllerComponent->GetControlRotation();
-	//const FRotator YawRotation(0, Rotation.Yaw, 0);
+	//get current position, input, and directional vectors
+	FVector NewLocation = Pawn->GetActorLocation();
+	FVector Forward = Controller->GetForwardVector();
+	FVector Right = Controller->GetRightVector();
+	FVector Up = Controller->GetUpVector();
+	FVector Input = Controller->GetMovementInput();
 
-	// get forward vector
-	//const FVector ForwardDirection = FRotationMatrix(YawRotation).GetUnitAxis(EAxis::X);
-	
-	// get right vector 
-	//const FVector RightDirection = FRotationMatrix(YawRotation).GetUnitAxis(EAxis::Y);
+	//update position
+	NewLocation += ((Forward * Input.X) + (Right * Input.Y) + (Up * Input.Z)) * ActorSpeed;
 
-	//Pawn->AddMovementInput(ForwardDirection, ControllerInput.Y);
-	//Pawn->AddMovementInput(RightDirection, ControllerInput.X);
+	//set new position
+	Pawn->SetActorLocation(NewLocation);
 
-	//UE_LOG(LogTemp, Warning, TEXT("The forward c: %s"), *ForwardDirection.ToString());
-	//UE_LOG(LogTemp, Warning, TEXT("The right c: %s"), *RightDirection.ToString());
-	// UE_LOG(LogTemp, Warning, TEXT("The forward: %s"), *_Forward.ToString());
-	// UE_LOG(LogTemp, Warning, TEXT("The right: %s"), *_Right.ToString());
 }
 
 // Called every frame
@@ -80,13 +61,6 @@ void UMoveComponent::TickComponent(float DeltaTime, ELevelTick TickType, FActorC
 	TryMovePawn(DeltaTime);
 	if (OrientWithMovement) OrientVisualsWithMovement();
 	// ...
-}
-
-void UMoveComponent::Setup(APawn* _Pawn, USceneComponent* _Orientation, USceneComponent* _DirectionalComponent)
-{
-	SetPawn(_Pawn);
-	SetOrientation(_Orientation);
-	SetDirectionalComponent(_DirectionalComponent);
 }
 
 void UMoveComponent::SetPawn(APawn* _Pawn)
@@ -99,29 +73,23 @@ void UMoveComponent::SetPawn(APawn* _Pawn)
 	Pawn = _Pawn;
 }
 
-void UMoveComponent::SetOrientation(USceneComponent* _Orientation)
+void UMoveComponent::SetMesh(USceneComponent* _Mesh)
 {
-	if (_Orientation == nullptr)
+	if (_Mesh == nullptr)
 	{
-		UE_LOG(LogTemp, Fatal, TEXT("Orientation sent in to SetOrientation is null"));
+		UE_LOG(LogTemp, Fatal, TEXT("Mesh sent in to SetMesh is null"));
 		return;
 	}
-	Orientation = _Orientation;
+	Mesh = _Mesh;
 }
 
-void UMoveComponent::SetDirectionalComponent(USceneComponent* _DirectionalComponent)
+void UMoveComponent::SetController(UControllerComponent* _Controller)
 {
-	if (_DirectionalComponent == nullptr)
+	if (_Controller == nullptr)
 	{
-		UE_LOG(LogTemp, Fatal, TEXT("DirectionalComponent sent in to SetDirectionalComponent is null"));
+		UE_LOG(LogTemp, Fatal, TEXT("ControllerComponent sent in to SetControllerComponent is null"));
 		return;
 	}
-	DirectionalComponent = _DirectionalComponent;
-	VisualsDefaultRotation = Orientation->GetRelativeRotation();
-}
-
-void UMoveComponent::SetControllerComponent(UControllerComponent* _ControllerComponent)
-{
-	ControllerComponent = _ControllerComponent;
+	Controller = _Controller;
 }
 

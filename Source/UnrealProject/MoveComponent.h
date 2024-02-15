@@ -13,23 +13,35 @@ class UNREALPROJECT_API UMoveComponent : public USceneComponent
 {
 	GENERATED_BODY()
 
-public:	
+public:
+	
 	// Sets default values for this component's properties
 	UMoveComponent();
 
+	// Called every frame
+	virtual void TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction) override;
+	
+	void SetPawn(APawn* _Pawn);
+	void SetMesh(USceneComponent* _Mesh);
+	void SetController(UControllerComponent* _Controller);
+
+	//makes the mesh look where it is moving	
+	//sets value for actors speed
+	void SetActorSpeed(float speed);
+
+	bool OrientWithMovement = true;
+	
 protected:
+	
 	// Called when the game starts
 	virtual void BeginPlay() override;
 	//root pawn
 	APawn* Pawn;
 	//component for mesh, used for rotating
-	USceneComponent* Orientation;
-	//component for getting the direction to go in (up/forward/right)
-	USceneComponent* DirectionalComponent;
-	UControllerComponent* ControllerComponent;
-	
-	//current input from controller
-	FVector ControllerInput;
+	USceneComponent* Mesh;
+	//controller with information about directions of movement
+	UControllerComponent* Controller;
+
 	//starting rotation for visuals/mesh
 	FRotator VisualsDefaultRotation;
 
@@ -39,32 +51,4 @@ protected:
 
 	UPROPERTY(EditAnywhere, Category = "Movement settings")
 	float ActorSpeed;
-	
-
-public:	
-	// Called every frame
-	virtual void TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction) override;
-
-	//sets up variables to be used by this component
-	//_Pawn = which pawn it controls
-	//_Orientation = "visuals/mesh" of the Actor
-	//_DirectionalComponent = component used to get forward/right/up directions
-	void Setup(APawn* _Pawn, USceneComponent* _Orientation, USceneComponent* _DirectionalComponent);
-	void SetPawn(APawn* _Pawn);
-	void SetOrientation(USceneComponent* _Orientation);
-	void SetDirectionalComponent(USceneComponent* _DirectionalComponent);
-	void SetControllerComponent(UControllerComponent* _ControllerComponent);
-	
-	//sets value for left/right movement
-	void SetControllerInputLR(float Value);
-	//sets value for forward/back movement
-	void SetControllerInputFB(float Value);
-	//sets value for up/down movement
-	void SetControllerInputUD(float Value);
-	//makes the mesh look where it is moving	
-	//sets value for actors speed
-	void SetActorSpeed(float speed);
-
-	bool OrientWithMovement = true;
-		
 };

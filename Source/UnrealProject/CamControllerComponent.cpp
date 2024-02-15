@@ -13,21 +13,11 @@ UCamControllerComponent::UCamControllerComponent()
 	// ...
 }
 
-// Called when the game starts
-void UCamControllerComponent::BeginPlay()
-{
-	Super::BeginPlay();
-	
-	// ...
-	
-}
-
-
 // Called every frame
 void UCamControllerComponent::TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction)
 {
 	Super::TickComponent(DeltaTime, TickType, ThisTickFunction);
-	TryRotateCamera(DeltaTime);
+	TryRotateComponents();
 	// ...
 	
 }
@@ -52,61 +42,39 @@ void UCamControllerComponent::SetComponentRotatedLR(USceneComponent* _ComponentR
 	ComponentRotatedLR = _ComponentRotatedLR;
 }
 
-
-void UCamControllerComponent::SetDirectionalComponent(USceneComponent* _DirectionalComponent)
+void UCamControllerComponent::SetController(UControllerComponent* _Controller)
 {
-	if (_DirectionalComponent == nullptr)
+	if(_Controller == nullptr)
 	{
-		UE_LOG(LogTemp, Fatal, TEXT("DirectionalComponent sent in to SetDirectionalComponent is null"));
+		UE_LOG(LogTemp, Fatal, TEXT("Controller sent in to SetController is null"));
 		return;
 	}
-	DirectionalComponent = _DirectionalComponent;
+	Controller = _Controller;
 }
 
-void UCamControllerComponent::SetCamera(UCameraComponent* _Camera)
+void UCamControllerComponent::TryRotateComponents()
 {
-	if (_Camera == nullptr)
-	{
-		UE_LOG(LogTemp, Fatal, TEXT("Camera sent in to SetCamera is null"));
-		return;
-	}
-	Camera = _Camera;
-}
+	//check for nullptr references
+	if (ComponentRotatedLR == nullptr || ComponentRotatedUD == nullptr || Controller == nullptr) return;
 
-void UCamControllerComponent::SetControllerComponent(UControllerComponent* _ControllerComponent)
-{
-	if(_ControllerComponent == nullptr)
-	{
-		UE_LOG(LogTemp, Fatal, TEXT("ControllerComponent sent in to SetControllerComponent is null"));
-		return;
-	}
-	ControllerComponent = _ControllerComponent;
-}
+	//get current rotations and inputs
+	const auto RotationInput = Controller->GetRotationInput();
+	auto UDRot = ComponentRotatedUD->GetRelativeRotation();
+	auto LRRot = ComponentRotatedLR->GetRelativeRotation();
 
-void UCamControllerComponent::TryRotateCamera(float DeltaTime)
-{
-	if (ComponentRotatedLR == nullptr || ComponentRotatedUD == nullptr || ControllerComponent == nullptr) return;
+	//update rotations
+	LRRot.Yaw += RotationInput.X * YawSpeed;
+	UDRot.Pitch += RotationInput.Y *  PitchSpeed;
+	UDRot.Pitch = FMath::Clamp(UDRot.Pitch, CameraUDMinPitch, CameraUDMaxPitch);
 
-	auto NewRotation = ControllerComponent->GetControllerRotation();
-
-	auto ControllerRot = ControllerComponent->GetControllerRotation();
-	auto UDRot = *new FRotator(ControllerRot.Pitch, 0, 0);
-	auto LRRot = *new FRotator(0, ControllerRot.Yaw, 0);
-	
-	LRRot.Yaw *= CamRotSpeed;
-
-	UDRot.Pitch *= CamRotSpeed;
-	UDRot.Pitch = FMath::Clamp(NewRotation.Pitch, CameraUDMinPitch, CameraUDMaxPitch);
-
-	UE_LOG(LogTemp, Warning, TEXT("The UDRot value is: %s"), *UDRot.ToString());
-	UE_LOG(LogTemp, Warning, TEXT("The LRRot value is: %s"), *LRRot.ToString());
-	
+	//set new rotations
 	ComponentRotatedLR->SetRelativeRotation(LRRot);
 	ComponentRotatedUD->SetRelativeRotation(UDRot);
-	ControllerComponent->SetControllerRotation(LRRot + UDRot);
 
-	ControllerComponent->SetForwardVector(ComponentRotatedLR->GetForwardVector());
-	ControllerComponent->SetRightVector(ComponentRotatedLR->GetRightVector());
+	//set vectors that will be used to move actor
+	Controller->SetForwardVector(ComponentRotatedLR->GetForwardVector());
+	Controller->SetRightVector(ComponentRotatedLR->GetRightVector());
+	Controller->SetUpVector(ComponentRotatedLR->GetUpVector());
 
 }
 

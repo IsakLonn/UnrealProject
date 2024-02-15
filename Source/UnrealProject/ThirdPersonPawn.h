@@ -28,11 +28,17 @@ public:
 	// Sets default values for this pawn's properties
 	AThirdPersonPawn();
 
+	// Called every frame
+	virtual void Tick(float DeltaTime) override;
+	
+
+	// Called to bind functionality to input
+	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
+
 protected:
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
 
-protected:
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
 	UCapsuleComponent* Collider;
 
@@ -59,21 +65,22 @@ protected:
 
 	UControllerComponent* ControllerComponent;
 
-public:
-	virtual void AddControllerPitchInput(float Val) override;
-	virtual void AddControllerRollInput(float Val) override;
-	virtual void AddControllerYawInput(float Val) override;
-
-protected:
 	//sets value for left/right movement
 	UFUNCTION(BlueprintCallable)
-	void SetControllerInputLR(float Value);
+	void SetMovementInputLR(float Value);
 	//sets value for forward/back movement
 	UFUNCTION(BlueprintCallable)
-	void SetControllerInputFB(float Value);
+	void SetMovementInputFB(float Value);
 	//sets value for up/down movement
 	UFUNCTION(BlueprintCallable)
-	void SetControllerInputUD(float Value);
+	void SetMovementInputUD(float Value);
+
+	//sets value for left/right rotation
+	UFUNCTION(BlueprintCallable)
+	void SetPitchInput(float Value);
+	//sets value for up/down rotation
+	UFUNCTION(BlueprintCallable)
+	void SetYawInput(float Value);
 	//toggles if the pawn can move or not
 	UFUNCTION(BlueprintCallable)
 	void ToggleMovement(bool Toggle);
@@ -93,16 +100,5 @@ protected:
 
 	UPROPERTY(BlueprintReadOnly)
 	TEnumAsByte<Perspectives> currentPerspective;
-	
-
-public:	
-	// Called every frame
-	virtual void Tick(float DeltaTime) override;
-	
-
-	// Called to bind functionality to input
-	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
-
-	
 
 };

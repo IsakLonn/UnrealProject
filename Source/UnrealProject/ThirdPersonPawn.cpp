@@ -40,62 +40,57 @@ void AThirdPersonPawn::BeginPlay()
 {
 	Super::BeginPlay();
 
+	//create controller object
 	if(ControllerComponent == nullptr)
 	{
 		ControllerComponent = NewObject<UControllerComponent>(this);
 		check(ControllerComponent != nullptr)
 		ControllerComponent->RegisterComponent();
 	}
-	
-	
-	CamControllerComponent->SetControllerComponent(ControllerComponent);
+
+	//set cam controller references/settings
+	CamControllerComponent->SetController(ControllerComponent);
 	CamControllerComponent->SetComponentRotatedUD(TPSCameraBoom);
 	CamControllerComponent->SetComponentRotatedLR(TPSCameraParent);
-	SetPerspective(TPS);
+
+	//set move component references/settings
+	MoveComponent->SetController(ControllerComponent);
+	MoveComponent->SetPawn(this);
 	MoveComponent->SetActorSpeed(WalkSpeed);
 	
-	MoveComponent->SetControllerComponent(ControllerComponent);
-	MoveComponent->SetPawn(this);
+	SetPerspective(TPS);
+
 }
 
-void AThirdPersonPawn::AddControllerPitchInput(float Val)
+void AThirdPersonPawn::SetMovementInputLR(float Value)
 {
-	if(ControllerComponent == nullptr) return;
-	ControllerComponent->AddPitchRotation(Val);
-}
-
-void AThirdPersonPawn::AddControllerRollInput(float Val)
-{
-	if(ControllerComponent == nullptr) return;
-	ControllerComponent->AddRollRotation(Val);
-}
-
-void AThirdPersonPawn::AddControllerYawInput(float Val)
-{
-	if(ControllerComponent == nullptr) return;
-	ControllerComponent->AddYawRotation(Val);
-}
-
-void AThirdPersonPawn::SetControllerInputLR(float Value)
-{
-	if (!bCanMove) return;
-	ControllerComponent->SetControllerInputY(Value);
-	MoveComponent->SetControllerInputLR(Value);
-}
-
-void AThirdPersonPawn::SetControllerInputFB(float Value)
-{
-	if (!bCanMove) return;
-	ControllerComponent->SetControllerInputX(Value);
-	MoveComponent->SetControllerInputFB(Value);
 	
+	if (!bCanMove) return;
+	ControllerComponent->SetMovementInputY(Value);
 }
 
-void AThirdPersonPawn::SetControllerInputUD(float Value)
+void AThirdPersonPawn::SetMovementInputFB(float Value)
 {
 	if (!bCanMove) return;
-	ControllerComponent->SetControllerInputZ(Value);
-	MoveComponent->SetControllerInputUD(Value);
+	ControllerComponent->SetMovementInputX(Value);
+}
+
+void AThirdPersonPawn::SetMovementInputUD(float Value)
+{
+	if (!bCanMove) return;
+	ControllerComponent->SetMovementInputZ(Value);
+}
+
+void AThirdPersonPawn::SetPitchInput(float Value)
+{
+	if(ControllerComponent == nullptr) return;
+	ControllerComponent->SetPitchInput(Value);
+}
+
+void AThirdPersonPawn::SetYawInput(float Value)
+{
+	if(ControllerComponent == nullptr) return;
+	ControllerComponent->SetYawInput(Value);
 }
 
 void AThirdPersonPawn::ToggleMovement(bool Toggle)
@@ -117,13 +112,11 @@ void AThirdPersonPawn::SetPerspective(Perspectives Perspective)
 	{
 	case FPS:
 		FPSCamera->SetActive(true);
-		CamControllerComponent->SetCamera(FPSCamera);
 		//CamControllerComponent->SetRotatedComponent(FPSCamera);
 		MoveComponent->OrientWithMovement = false;
 		break;
 	case TPS:
 		TPSCamera->SetActive(true);
-		CamControllerComponent->SetCamera(TPSCamera);
 		//CamControllerComponent->SetRotatedComponent(TPSCameraBoom);
 		MoveComponent->OrientWithMovement = true;
 		break;

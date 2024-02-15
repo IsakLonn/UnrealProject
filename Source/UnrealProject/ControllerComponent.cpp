@@ -13,74 +13,31 @@ UControllerComponent::UControllerComponent()
 	// ...
 }
 
+void UControllerComponent::SetUpVector(FVector _Up) { Up = _Up; }
 
-void UControllerComponent::SetUpDirection(FVector _Up)
-{
-	Up = _Up;
-}
+void UControllerComponent::SetForwardVector(FVector _Forward) { Forward = _Forward; }
 
-void UControllerComponent::SetForwardVector(FVector _Forward)
-{
-	Forward = _Forward;
-}
+void UControllerComponent::SetRightVector(FVector _Right) { Right = _Right; }
 
-void UControllerComponent::SetRightVector(FVector _Right)
-{
-	Right = _Right;
-}
+FVector UControllerComponent::GetForwardVector() const { return Forward; }
 
-FVector UControllerComponent::GetForwardVector() const
-{
-	return Forward;
-}
+FVector UControllerComponent::GetRightVector() const { return Right; }
 
-FVector UControllerComponent::GetRightVector() const
-{
-	return Right;
-}
+FVector UControllerComponent::GetUpVector() const { return Up;}
 
-void UControllerComponent::SetControllerInputX(float Value)
-{
-	ControllerInput.X = Value;
-}
+void UControllerComponent::SetMovementInputX(float Value) { MovementInput.X = Value; }
 
-void UControllerComponent::SetControllerInputY(float Value)
-{
-	ControllerInput.Y = Value;
-}
+void UControllerComponent::SetMovementInputY(float Value) { MovementInput.Y = Value; }
 
-void UControllerComponent::SetControllerInputZ(float Value)
-{
-	ControllerInput.Z = Value;
-}
+void UControllerComponent::SetMovementInputZ(float Value) { MovementInput.Z = Value; }
 
-void UControllerComponent::SetControllerRotation(FRotator Rotation)
-{
-	ControllerRotation = Rotation;
-}
+void UControllerComponent::SetYawInput(float Value) { RotationInput.X = Value; }
 
-void UControllerComponent::AddYawRotation(float Value)
-{
-	ControllerRotation.Yaw += Value;
-}
+void UControllerComponent::SetPitchInput(float Value) { RotationInput.Y = Value; }
 
-void UControllerComponent::AddPitchRotation(float Value)
-{
-	ControllerRotation.Pitch += Value;
-}
+void UControllerComponent::SetRollInput(float Value) { RotationInput.Z = Value; }
 
-void UControllerComponent::AddRollRotation(float Value)
-{
-	ControllerRotation.Roll += Value;
-}
+FVector UControllerComponent::GetRotationInput() const { return RotationInput; }
 
-FRotator UControllerComponent::GetControllerRotation() const
-{
-	return ControllerRotation;
-}
-
-FVector UControllerComponent::GetControllerInput() const
-{
-	return ControllerInput;
-}
+FVector UControllerComponent::GetMovementInput() const { return MovementInput; }
 
