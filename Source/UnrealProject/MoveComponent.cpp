@@ -42,15 +42,35 @@ void UMoveComponent::SetActorSpeed(float speed) { ActorSpeed = speed; }
 
 void UMoveComponent::TryMovePawn(float DeltaTime)
 {
-	if (Pawn == nullptr || DirectionalComponent == nullptr) return;
-	UE_LOG(LogTemp, Warning, TEXT("The vector value is: %s"), *ControllerInput.ToString());
-	FVector NewLocation = Pawn->GetActorLocation();
-	FVector _Forward = DirectionalComponent->GetForwardVector();
-	FVector _Right = DirectionalComponent->GetRightVector();
-	FVector _Up = DirectionalComponent->GetUpVector();
+	UE_LOG(LogTemp, Warning, TEXT("The Pawn value is %s"), ( Pawn != nullptr ? TEXT("true") : TEXT("false") ));
+	UE_LOG(LogTemp, Warning, TEXT("The DirectionalComponent value is %s"), ( DirectionalComponent != nullptr ? TEXT("true") : TEXT("false") ));
+	UE_LOG(LogTemp, Warning, TEXT("The ControllerComponent value is %s"), ( ControllerComponent != nullptr ? TEXT("true") : TEXT("false") ));
+	if (Pawn == nullptr || DirectionalComponent == nullptr || ControllerComponent == nullptr) return;
+	 FVector NewLocation = Pawn->GetActorLocation();
+	 FVector _Forward = ControllerComponent->GetForwardVector();
+	 FVector _Right = ControllerComponent->GetRightVector();
+	 FVector Input = ControllerComponent->GetControllerInput();
+	
+	 NewLocation += ((_Forward * Input.X) + (_Right * Input.Y)) * ActorSpeed;
+	 Pawn->SetActorLocation(NewLocation);
 
-	NewLocation += ((_Forward * ControllerInput.X) + (_Right * ControllerInput.Y) + (_Up * ControllerInput.Z)) * ActorSpeed;
-	Pawn->SetActorLocation(NewLocation);
+	// find out which way is forward
+	//const FRotator Rotation = ControllerComponent->GetControlRotation();
+	//const FRotator YawRotation(0, Rotation.Yaw, 0);
+
+	// get forward vector
+	//const FVector ForwardDirection = FRotationMatrix(YawRotation).GetUnitAxis(EAxis::X);
+	
+	// get right vector 
+	//const FVector RightDirection = FRotationMatrix(YawRotation).GetUnitAxis(EAxis::Y);
+
+	//Pawn->AddMovementInput(ForwardDirection, ControllerInput.Y);
+	//Pawn->AddMovementInput(RightDirection, ControllerInput.X);
+
+	//UE_LOG(LogTemp, Warning, TEXT("The forward c: %s"), *ForwardDirection.ToString());
+	//UE_LOG(LogTemp, Warning, TEXT("The right c: %s"), *RightDirection.ToString());
+	// UE_LOG(LogTemp, Warning, TEXT("The forward: %s"), *_Forward.ToString());
+	// UE_LOG(LogTemp, Warning, TEXT("The right: %s"), *_Right.ToString());
 }
 
 // Called every frame
@@ -98,5 +118,10 @@ void UMoveComponent::SetDirectionalComponent(USceneComponent* _DirectionalCompon
 	}
 	DirectionalComponent = _DirectionalComponent;
 	VisualsDefaultRotation = Orientation->GetRelativeRotation();
+}
+
+void UMoveComponent::SetControllerComponent(UControllerComponent* _ControllerComponent)
+{
+	ControllerComponent = _ControllerComponent;
 }
 

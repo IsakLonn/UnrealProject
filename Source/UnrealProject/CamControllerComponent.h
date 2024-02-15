@@ -4,8 +4,8 @@
 
 #include "CoreMinimal.h"
 #include "Components/SceneComponent.h"
-#include "GameFramework/SpringArmComponent.h"
 #include "Camera/CameraComponent.h"
+#include "ControllerComponent.h"
 #include "CamControllerComponent.generated.h"
 
 
@@ -36,36 +36,26 @@ public:
 	// Called every frame
 	virtual void TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction) override;
 
-	//sets up references to be used by component
-	//_RotatedComponent = component that will be rotated
-	//_Camera = currently used camera
-	//_DirectionalComponent = component used to get forward/right/up directions
-	void Setup(USceneComponent* _RotatedComponent, USceneComponent* _DirectionalComponent, UCameraComponent* _Camera);
-
-	//sets rotation input left/right
-	UFUNCTION(BlueprintCallable)
-	void SetRotationInputLR(float Value);
-	//sets rotation input up/down
-	UFUNCTION(BlueprintCallable)
-	void SetRotationInputUD(float Value);
-
-	void SetRotatedComponent(USceneComponent* _RotatedComponent);
+	void SetComponentRotatedUD(USceneComponent* _ComponentRotatedUD);
+	void SetComponentRotatedLR(USceneComponent* _ComponentRotatedLR);
 	void SetDirectionalComponent(USceneComponent* _DirectionalComponent);
 	void SetCamera(UCameraComponent* _Camera);
-
-	bool bCanRotateLR = true;
-	bool bCanRotateUD = true;
+	void SetControllerComponent(UControllerComponent* _ControllerComponent);
 
 private:
 	// vector for player rotation input
 	FVector RotationInput;
 
 	//reference to component rotating up/down
-	USceneComponent* RotatedComponent;
-
+	USceneComponent* ComponentRotatedUD;
+	//reference to component rotating left/right
+	USceneComponent* ComponentRotatedLR;
+	
 	USceneComponent* DirectionalComponent;
 
 	UCameraComponent* Camera;
+
+	UControllerComponent* ControllerComponent;
 
 	void TryRotateCamera(float DeltaTime);
 };

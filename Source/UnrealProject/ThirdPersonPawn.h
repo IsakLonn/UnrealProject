@@ -10,6 +10,7 @@
 #include "Camera/CameraComponent.h"
 #include "MoveComponent.h"
 #include "CamControllerComponent.h"
+#include "ControllerComponent.h"
 #include "ThirdPersonPawn.generated.h"
 
 UENUM(BlueprintType)
@@ -38,10 +39,11 @@ protected:
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
 	USkeletalMeshComponent* PlayerMesh;
 
-	USceneComponent* DirectionalComponent;
-
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
 	USpringArmComponent* TPSCameraBoom;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
+	USceneComponent* TPSCameraParent;
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
 	UCameraComponent* TPSCamera;
@@ -55,13 +57,14 @@ protected:
 	UPROPERTY(Instanced, EditDefaultsOnly)
 	UCamControllerComponent* CamControllerComponent;
 
-	//sets value for left/right rotation
-	UFUNCTION(BlueprintCallable)
-	void SetRotationInputLR(float Value);
-	//sets value for up/down rotation
-	UFUNCTION(BlueprintCallable)
-	void SetRotationInputUD(float Value);
+	UControllerComponent* ControllerComponent;
 
+public:
+	virtual void AddControllerPitchInput(float Val) override;
+	virtual void AddControllerRollInput(float Val) override;
+	virtual void AddControllerYawInput(float Val) override;
+
+protected:
 	//sets value for left/right movement
 	UFUNCTION(BlueprintCallable)
 	void SetControllerInputLR(float Value);
@@ -95,6 +98,7 @@ protected:
 public:	
 	// Called every frame
 	virtual void Tick(float DeltaTime) override;
+	
 
 	// Called to bind functionality to input
 	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;

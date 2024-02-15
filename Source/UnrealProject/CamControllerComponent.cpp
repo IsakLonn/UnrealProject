@@ -9,10 +9,9 @@ UCamControllerComponent::UCamControllerComponent()
 	// Set this component to be initialized when the game starts, and to be ticked every frame.  You can turn these features
 	// off to improve performance if you don't need them.
 	PrimaryComponentTick.bCanEverTick = true;
-
+	
 	// ...
 }
-
 
 // Called when the game starts
 void UCamControllerComponent::BeginPlay()
@@ -33,32 +32,26 @@ void UCamControllerComponent::TickComponent(float DeltaTime, ELevelTick TickType
 	
 }
 
-void UCamControllerComponent::Setup(USceneComponent* _RotatedComponent, USceneComponent* _DirectionalComponent, UCameraComponent* _Camera)
+void UCamControllerComponent::SetComponentRotatedUD(USceneComponent* _ComponentRotatedUD)
 {
-	SetCamera(_Camera);
-	SetRotatedComponent(_RotatedComponent);
-	SetDirectionalComponent(_DirectionalComponent);
-}
-
-void UCamControllerComponent::SetRotationInputLR(float Value)
-{
-	RotationInput.Y = Value;
-}
-
-void UCamControllerComponent::SetRotationInputUD(float Value)
-{
-	RotationInput.X = Value;
-}
-
-void UCamControllerComponent::SetRotatedComponent(USceneComponent* _RotatedComponent)
-{
-	if (_RotatedComponent == nullptr)
+	if (_ComponentRotatedUD == nullptr)
 	{
-		UE_LOG(LogTemp, Fatal, TEXT("CameraParent sent in to SetCameraParent is null"));
+		UE_LOG(LogTemp, Fatal, TEXT("ComponentRotatedUD sent in to ComponentRotatedUD is null"));
 		return;
 	}
-	RotatedComponent = _RotatedComponent;
+	ComponentRotatedUD = _ComponentRotatedUD;
 }
+
+void UCamControllerComponent::SetComponentRotatedLR(USceneComponent* _ComponentRotatedLR)
+{
+	if (_ComponentRotatedLR == nullptr)
+	{
+		UE_LOG(LogTemp, Fatal, TEXT("ComponentRotatedLR sent in to SetComponentRotatedLR is null"));
+		return;
+	}
+	ComponentRotatedLR = _ComponentRotatedLR;
+}
+
 
 void UCamControllerComponent::SetDirectionalComponent(USceneComponent* _DirectionalComponent)
 {
@@ -80,22 +73,40 @@ void UCamControllerComponent::SetCamera(UCameraComponent* _Camera)
 	Camera = _Camera;
 }
 
+void UCamControllerComponent::SetControllerComponent(UControllerComponent* _ControllerComponent)
+{
+	if(_ControllerComponent == nullptr)
+	{
+		UE_LOG(LogTemp, Fatal, TEXT("ControllerComponent sent in to SetControllerComponent is null"));
+		return;
+	}
+	ControllerComponent = _ControllerComponent;
+}
+
 void UCamControllerComponent::TryRotateCamera(float DeltaTime)
 {
-	if (RotatedComponent == nullptr || DirectionalComponent == nullptr) return;
+	if (ComponentRotatedLR == nullptr || ComponentRotatedUD == nullptr || ControllerComponent == nullptr) return;
 
-	auto NewRotation = RotatedComponent->GetRelativeRotation();
+	auto NewRotation = ControllerComponent->GetControllerRotation();
 
-	if(bCanRotateLR)NewRotation.Yaw += RotationInput.Y * CamRotSpeed * DeltaTime;
-	if(bCanRotateUD)NewRotation.Pitch += RotationInput.X * CamRotSpeed * DeltaTime;
-	NewRotation.Pitch = FMath::Clamp(NewRotation.Pitch, CameraUDMinPitch, CameraUDMaxPitch);
+	auto ControllerRot = ControllerComponent->GetControllerRotation();
+	auto UDRot = *new FRotator(ControllerRot.Pitch, 0, 0);
+	auto LRRot = *new FRotator(0, ControllerRot.Yaw, 0);
+	
+	LRRot.Yaw *= CamRotSpeed;
 
-	RotatedComponent->SetRelativeRotation(NewRotation);
+	UDRot.Pitch *= CamRotSpeed;
+	UDRot.Pitch = FMath::Clamp(NewRotation.Pitch, CameraUDMinPitch, CameraUDMaxPitch);
 
-	NewRotation.Pitch = 0;
-	NewRotation.Roll = 0;
+	UE_LOG(LogTemp, Warning, TEXT("The UDRot value is: %s"), *UDRot.ToString());
+	UE_LOG(LogTemp, Warning, TEXT("The LRRot value is: %s"), *LRRot.ToString());
+	
+	ComponentRotatedLR->SetRelativeRotation(LRRot);
+	ComponentRotatedUD->SetRelativeRotation(UDRot);
+	ControllerComponent->SetControllerRotation(LRRot + UDRot);
 
-	DirectionalComponent->SetRelativeRotation(NewRotation);
+	ControllerComponent->SetForwardVector(ComponentRotatedLR->GetForwardVector());
+	ControllerComponent->SetRightVector(ComponentRotatedLR->GetRightVector());
 
 }
 

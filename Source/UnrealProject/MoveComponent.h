@@ -3,6 +3,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "ControllerComponent.h"
 #include "Components/SceneComponent.h"
 #include "MoveComponent.generated.h"
 
@@ -25,6 +26,7 @@ protected:
 	USceneComponent* Orientation;
 	//component for getting the direction to go in (up/forward/right)
 	USceneComponent* DirectionalComponent;
+	UControllerComponent* ControllerComponent;
 	
 	//current input from controller
 	FVector ControllerInput;
@@ -51,6 +53,8 @@ public:
 	void SetPawn(APawn* _Pawn);
 	void SetOrientation(USceneComponent* _Orientation);
 	void SetDirectionalComponent(USceneComponent* _DirectionalComponent);
+	void SetControllerComponent(UControllerComponent* _ControllerComponent);
+	
 	//sets value for left/right movement
 	void SetControllerInputLR(float Value);
 	//sets value for forward/back movement

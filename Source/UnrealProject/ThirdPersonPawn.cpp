@@ -15,24 +15,23 @@ AThirdPersonPawn::AThirdPersonPawn()
 	PlayerMesh = CreateDefaultSubobject<USkeletalMeshComponent>(TEXT("PlayerMesh"));
 	PlayerMesh->SetupAttachment(RootComponent);
 
-	DirectionalComponent = CreateDefaultSubobject<USceneComponent>(TEXT("DirectionalComponent"));
-	DirectionalComponent->SetupAttachment(RootComponent);
-
 	MoveComponent = CreateDefaultSubobject<UMoveComponent>(TEXT("MoveComponent"));
 	MoveComponent->SetupAttachment(RootComponent);	
 
 	CamControllerComponent = CreateDefaultSubobject<UCamControllerComponent>(TEXT("CamController"));
 	CamControllerComponent->SetupAttachment(RootComponent);
 
-	TPSCameraBoom = CreateDefaultSubobject<USpringArmComponent>(TEXT("CameraBoom"));
-	TPSCameraBoom->SetupAttachment(RootComponent);
+	TPSCameraParent = CreateDefaultSubobject<USceneComponent>(TEXT("TPSCameraParent"));
+	TPSCameraParent->SetupAttachment(RootComponent);
+	
+	TPSCameraBoom = CreateDefaultSubobject<USpringArmComponent>(TEXT("TPSCameraBoom"));
+	TPSCameraBoom->SetupAttachment(TPSCameraParent);
 
 	TPSCamera = CreateDefaultSubobject<UCameraComponent>(TEXT("TPSCamera"));
 	TPSCamera->SetupAttachment(TPSCameraBoom);
 
 	FPSCamera = CreateDefaultSubobject<UCameraComponent>(TEXT("FPSCamera"));
 	FPSCamera->SetupAttachment(PlayerMesh);
-
 	
 }
 
@@ -41,39 +40,61 @@ void AThirdPersonPawn::BeginPlay()
 {
 	Super::BeginPlay();
 
-	//setup references for other components
-	MoveComponent->Setup(this, PlayerMesh, DirectionalComponent);
-	CamControllerComponent->Setup(TPSCameraBoom, DirectionalComponent, TPSCamera);
-
+	if(ControllerComponent == nullptr)
+	{
+		ControllerComponent = NewObject<UControllerComponent>(this);
+		check(ControllerComponent != nullptr)
+		ControllerComponent->RegisterComponent();
+	}
+	
+	
+	CamControllerComponent->SetControllerComponent(ControllerComponent);
+	CamControllerComponent->SetComponentRotatedUD(TPSCameraBoom);
+	CamControllerComponent->SetComponentRotatedLR(TPSCameraParent);
 	SetPerspective(TPS);
 	MoveComponent->SetActorSpeed(WalkSpeed);
+	
+	MoveComponent->SetControllerComponent(ControllerComponent);
+	MoveComponent->SetPawn(this);
 }
 
-void AThirdPersonPawn::SetRotationInputLR(float Value)
+void AThirdPersonPawn::AddControllerPitchInput(float Val)
 {
-	CamControllerComponent->SetRotationInputLR(Value);
+	if(ControllerComponent == nullptr) return;
+	ControllerComponent->AddPitchRotation(Val);
 }
 
-void AThirdPersonPawn::SetRotationInputUD(float Value)
+void AThirdPersonPawn::AddControllerRollInput(float Val)
 {
-	CamControllerComponent->SetRotationInputUD(Value);
+	if(ControllerComponent == nullptr) return;
+	ControllerComponent->AddRollRotation(Val);
+}
+
+void AThirdPersonPawn::AddControllerYawInput(float Val)
+{
+	if(ControllerComponent == nullptr) return;
+	ControllerComponent->AddYawRotation(Val);
 }
 
 void AThirdPersonPawn::SetControllerInputLR(float Value)
 {
 	if (!bCanMove) return;
+	ControllerComponent->SetControllerInputY(Value);
 	MoveComponent->SetControllerInputLR(Value);
 }
 
 void AThirdPersonPawn::SetControllerInputFB(float Value)
 {
 	if (!bCanMove) return;
+	ControllerComponent->SetControllerInputX(Value);
 	MoveComponent->SetControllerInputFB(Value);
+	
 }
 
 void AThirdPersonPawn::SetControllerInputUD(float Value)
 {
 	if (!bCanMove) return;
+	ControllerComponent->SetControllerInputZ(Value);
 	MoveComponent->SetControllerInputUD(Value);
 }
 
@@ -97,16 +118,14 @@ void AThirdPersonPawn::SetPerspective(Perspectives Perspective)
 	case FPS:
 		FPSCamera->SetActive(true);
 		CamControllerComponent->SetCamera(FPSCamera);
-		CamControllerComponent->SetRotatedComponent(FPSCamera);
+		//CamControllerComponent->SetRotatedComponent(FPSCamera);
 		MoveComponent->OrientWithMovement = false;
-		CamControllerComponent->bCanRotateLR = false;
 		break;
 	case TPS:
 		TPSCamera->SetActive(true);
 		CamControllerComponent->SetCamera(TPSCamera);
-		CamControllerComponent->SetRotatedComponent(TPSCameraBoom);
+		//CamControllerComponent->SetRotatedComponent(TPSCameraBoom);
 		MoveComponent->OrientWithMovement = true;
-		CamControllerComponent->bCanRotateLR = true;
 		break;
 	default:
 		break;
@@ -117,6 +136,7 @@ void AThirdPersonPawn::SetPerspective(Perspectives Perspective)
 void AThirdPersonPawn::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
+	
 }
 
 // Called to bind functionality to input
