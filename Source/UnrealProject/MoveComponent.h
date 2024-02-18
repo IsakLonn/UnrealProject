@@ -22,7 +22,7 @@ public:
 	virtual void TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction) override;
 	
 	void SetPawn(APawn* _Pawn);
-	void SetMesh(USceneComponent* _Mesh);
+	void SetOrientation(USceneComponent* _Orientation);
 	void SetController(UControllerComponent* _Controller);
 
 	//makes the mesh look where it is moving	
@@ -38,7 +38,7 @@ protected:
 	//root pawn
 	APawn* Pawn;
 	//component for mesh, used for rotating
-	USceneComponent* Mesh;
+	USceneComponent* Orientation;
 	//controller with information about directions of movement
 	UControllerComponent* Controller;
 

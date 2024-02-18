@@ -2,6 +2,9 @@
 
 
 #include "ThirdPersonPawn.h"
+
+#include "MyGameInstance.h"
+#include "Kismet/GameplayStatics.h"
 #include "Kismet/KismetMathLibrary.h"
 
 // Sets default values
@@ -12,8 +15,11 @@ AThirdPersonPawn::AThirdPersonPawn()
 	Collider = CreateDefaultSubobject<UCapsuleComponent>(TEXT("CapsuleCollider"));
 	RootComponent = Collider;
 
+	OrientationParent = CreateDefaultSubobject<USceneComponent>(TEXT("OrientationParent"));
+	OrientationParent->SetupAttachment(RootComponent);
+	
 	PlayerMesh = CreateDefaultSubobject<USkeletalMeshComponent>(TEXT("PlayerMesh"));
-	PlayerMesh->SetupAttachment(RootComponent);
+	PlayerMesh->SetupAttachment(OrientationParent);
 
 	MoveComponent = CreateDefaultSubobject<UMoveComponent>(TEXT("MoveComponent"));
 	MoveComponent->SetupAttachment(RootComponent);	
@@ -26,18 +32,18 @@ AThirdPersonPawn::AThirdPersonPawn()
 	
 	TPSCameraBoom = CreateDefaultSubobject<USpringArmComponent>(TEXT("TPSCameraBoom"));
 	TPSCameraBoom->SetupAttachment(TPSCameraParent);
-
-	TPSCamera = CreateDefaultSubobject<UCameraComponent>(TEXT("TPSCamera"));
-	TPSCamera->SetupAttachment(TPSCameraBoom);
-
-	FPSCamera = CreateDefaultSubobject<UCameraComponent>(TEXT("FPSCamera"));
-	FPSCamera->SetupAttachment(PlayerMesh);
 	
+	//TPSCamera = CreateDefaultSubobject<UCameraComponent>(TEXT("TPSCamera"));
+	//TPSCamera->SetupAttachment(TPSCameraBoom);
+
+	//FPSCamera = CreateDefaultSubobject<UCameraComponent>(TEXT("FPSCamera"));
+	//FPSCamera->SetupAttachment(PlayerMesh);
 }
 
 // Called when the game starts or when spawned
 void AThirdPersonPawn::BeginPlay()
 {
+	
 	Super::BeginPlay();
 
 	//create controller object
@@ -50,16 +56,15 @@ void AThirdPersonPawn::BeginPlay()
 
 	//set cam controller references/settings
 	CamControllerComponent->SetController(ControllerComponent);
-	CamControllerComponent->SetComponentRotatedUD(TPSCameraBoom);
-	CamControllerComponent->SetComponentRotatedLR(TPSCameraParent);
 
 	//set move component references/settings
 	MoveComponent->SetController(ControllerComponent);
 	MoveComponent->SetPawn(this);
+	MoveComponent->SetOrientation(OrientationParent);
 	MoveComponent->SetActorSpeed(WalkSpeed);
 	
 	SetPerspective(TPS);
-
+	
 }
 
 void AThirdPersonPawn::SetMovementInputLR(float Value)
@@ -105,19 +110,26 @@ void AThirdPersonPawn::SetActorSpeed(float Speed)
 
 void AThirdPersonPawn::SetPerspective(Perspectives Perspective)
 {
+	auto t = UGameplayStatics::GetGameInstance(GetWorld());
+	auto CameraManager = Cast<UMyGameInstance>(t)->CameraManager();
+	
 	currentPerspective = Perspective;
-	FPSCamera->SetActive(false);
-	TPSCamera->SetActive(false);
+	//FPSCamera->SetActive(false);
+	//TPSCamera->SetActive(false);
 	switch (Perspective)
 	{
 	case FPS:
-		FPSCamera->SetActive(true);
-		//CamControllerComponent->SetRotatedComponent(FPSCamera);
+		//FPSCamera->SetActive(true);
+		CamControllerComponent->SetComponentRotatedLR(OrientationParent);
+		CameraManager->FollowTarget(OrientationParent, 0);
+		//CamControllerComponent->SetComponentRotatedUD(FPSCamera);
 		MoveComponent->OrientWithMovement = false;
 		break;
 	case TPS:
-		TPSCamera->SetActive(true);
-		//CamControllerComponent->SetRotatedComponent(TPSCameraBoom);
+		//TPSCamera->SetActive(true);
+		CameraManager->FollowTarget(TPSCameraParent, 300);
+		CamControllerComponent->SetComponentRotatedLR(TPSCameraParent);
+		CamControllerComponent->SetComponentRotatedUD(TPSCameraBoom);
 		MoveComponent->OrientWithMovement = true;
 		break;
 	default:

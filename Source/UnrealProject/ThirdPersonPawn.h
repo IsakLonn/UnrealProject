@@ -46,6 +46,9 @@ protected:
 	USkeletalMeshComponent* PlayerMesh;
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
+	USceneComponent* OrientationParent;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
 	USpringArmComponent* TPSCameraBoom;
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)

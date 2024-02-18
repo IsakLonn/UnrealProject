@@ -23,13 +23,16 @@ void UMoveComponent::BeginPlay()
 
 void UMoveComponent::OrientVisualsWithMovement()
 {
-	// if (Pawn == nullptr || Mesh == nullptr || DirectionalComponent == nullptr) return;
-	// if (ControllerInput.X == 0 && ControllerInput.Y == 0) return; // don't rotate player if no input exists
-	// FVector LookLocation = (DirectionalComponent->GetForwardVector() * ControllerInput.X) + (DirectionalComponent->GetRightVector() * ControllerInput.Y);
-	// FVector ActorLocation = Pawn->GetActorLocation();
-	// FRotator Rotation = UKismetMathLibrary::FindLookAtRotation(ActorLocation, ActorLocation + LookLocation);
-	// Rotation += VisualsDefaultRotation;
-	// Mesh->SetRelativeRotation(Rotation);
+	if (Pawn == nullptr || Orientation == nullptr || Controller == nullptr) return;
+	auto Input = Controller->GetMovementInput();
+	auto Forward = Controller->GetForwardVector();
+	auto Right = Controller->GetRightVector();
+	if (Input.X == 0 && Input.Y == 0) return; // don't rotate player if no input exists
+	FVector LookLocation = (Forward * Input.X) + (Right * Input.Y);
+	FVector ActorLocation = Pawn->GetActorLocation();
+	FRotator Rotation = UKismetMathLibrary::FindLookAtRotation(ActorLocation, ActorLocation + LookLocation);
+	Rotation += VisualsDefaultRotation;
+	Orientation->SetRelativeRotation(Rotation);
 }
 
 void UMoveComponent::SetActorSpeed(float speed) { ActorSpeed = speed; }
@@ -73,14 +76,14 @@ void UMoveComponent::SetPawn(APawn* _Pawn)
 	Pawn = _Pawn;
 }
 
-void UMoveComponent::SetMesh(USceneComponent* _Mesh)
+void UMoveComponent::SetOrientation(USceneComponent* _Orientation)
 {
-	if (_Mesh == nullptr)
+	if (_Orientation == nullptr)
 	{
-		UE_LOG(LogTemp, Fatal, TEXT("Mesh sent in to SetMesh is null"));
+		UE_LOG(LogTemp, Fatal, TEXT("Orientation sent in to SetOrientation is null"));
 		return;
 	}
-	Mesh = _Mesh;
+	Orientation = _Orientation;
 }
 
 void UMoveComponent::SetController(UControllerComponent* _Controller)

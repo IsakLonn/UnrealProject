@@ -8,4 +8,6 @@ void AUnrealProjectGameMode::InitGameState()
 	Super::InitGameState();
 
 	DefaultPawnClass = CustomPawnClass;
+	
+	
 }
