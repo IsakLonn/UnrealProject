@@ -3,6 +3,7 @@
 
 #include "CameraManager.h"
 
+#include "MovieSceneSequenceID.h"
 #include "Kismet/GameplayStatics.h"
 
 // Sets default values
@@ -11,7 +12,7 @@ ACameraManager::ACameraManager()
  	// Set this actor to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
 	PrimaryActorTick.bCanEverTick = true;
 	
-	USceneComponent* root = CreateDefaultSubobject<USceneComponent>("Root");
+	root = CreateDefaultSubobject<USceneComponent>("Root");
 	RootComponent = root;
 
 	CameraBoom = CreateDefaultSubobject<USpringArmComponent>("CameraBoom");
@@ -39,21 +40,48 @@ ACameraManager::ACameraManager()
 void ACameraManager::BeginPlay()
 {
 	Super::BeginPlay();
-	
 }
 
 // Called every frame
 void ACameraManager::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
-	SetActorLocation(_FollowTarget->GetComponentLocation());
-	SetActorRotation(_FollowTarget->GetComponentRotation());
 }
 
-void ACameraManager::FollowTarget(USceneComponent* target, float followDistance)
+void ACameraManager::AttachToComponent(USceneComponent* Target, float TargetArmLength, bool SnapToTarget) const
 {
-	_FollowTarget = target;
-	CameraBoom->TargetArmLength = followDistance;
-	
+	Target = Target != nullptr ? Target : root;
+	const FAttachmentTransformRules AttachmentTransformRules = SnapToTarget ? FAttachmentTransformRules::SnapToTargetNotIncludingScale : FAttachmentTransformRules::KeepWorldTransform;
+	CameraBoom->AttachToComponent(Target, AttachmentTransformRules);
+	SetTargetArmLength(TargetArmLength);
 }
+
+void ACameraManager::ReturnCamera() const
+{
+	AttachToComponent(nullptr, 0, false);
+}
+
+void ACameraManager::SetLocation(FVector Location, bool bRelativeLocation) const
+{
+	if(bRelativeLocation) CameraBoom->SetRelativeLocation(Location);
+	else CameraBoom->SetWorldLocation(Location);
+}
+
+void ACameraManager::SetRotation(FRotator Rotation, bool bRelativeRotation) const
+{
+	if(bRelativeRotation) CameraBoom->SetRelativeRotation(Rotation);
+	else CameraBoom->SetWorldRotation(Rotation);
+}
+
+void ACameraManager::SetTargetArmLength(float TargetArmLength) const
+{
+	CameraBoom->TargetArmLength = TargetArmLength;
+}
+
+void ACameraManager::SetFOV(float FOV) const
+{
+	Camera->SetFieldOfView(FOV);
+}
+
+
 

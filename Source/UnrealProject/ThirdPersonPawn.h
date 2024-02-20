@@ -49,16 +49,16 @@ protected:
 	USceneComponent* OrientationParent;
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
-	USpringArmComponent* TPSCameraBoom;
+	USceneComponent* TPSCamUDRot;
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
-	USceneComponent* TPSCameraParent;
+	USceneComponent* TPSCamLRRot;
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
-	UCameraComponent* TPSCamera;
+	USceneComponent* TPSCamTarget;
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
-	UCameraComponent* FPSCamera;
+	USceneComponent* FPSCamTarget;
 
 	UPROPERTY(Instanced, EditDefaultsOnly)
 	UMoveComponent* MoveComponent;

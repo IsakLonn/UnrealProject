@@ -27,17 +27,17 @@ AThirdPersonPawn::AThirdPersonPawn()
 	CamControllerComponent = CreateDefaultSubobject<UCamControllerComponent>(TEXT("CamController"));
 	CamControllerComponent->SetupAttachment(RootComponent);
 
-	TPSCameraParent = CreateDefaultSubobject<USceneComponent>(TEXT("TPSCameraParent"));
-	TPSCameraParent->SetupAttachment(RootComponent);
+	TPSCamLRRot = CreateDefaultSubobject<USceneComponent>(TEXT("TPSCamLRRot"));
+	TPSCamLRRot->SetupAttachment(RootComponent);
 	
-	TPSCameraBoom = CreateDefaultSubobject<USpringArmComponent>(TEXT("TPSCameraBoom"));
-	TPSCameraBoom->SetupAttachment(TPSCameraParent);
+	TPSCamUDRot = CreateDefaultSubobject<USceneComponent>(TEXT("TPSCamUDRot"));
+	TPSCamUDRot->SetupAttachment(TPSCamLRRot);
 	
-	//TPSCamera = CreateDefaultSubobject<UCameraComponent>(TEXT("TPSCamera"));
-	//TPSCamera->SetupAttachment(TPSCameraBoom);
+	TPSCamTarget = CreateDefaultSubobject<USceneComponent>(TEXT("TPSCamTarget"));
+	TPSCamTarget->SetupAttachment(TPSCamUDRot);
 
-	//FPSCamera = CreateDefaultSubobject<UCameraComponent>(TEXT("FPSCamera"));
-	//FPSCamera->SetupAttachment(PlayerMesh);
+	FPSCamTarget = CreateDefaultSubobject<USceneComponent>(TEXT("FPSCamTarget"));
+	FPSCamTarget->SetupAttachment(OrientationParent);
 }
 
 // Called when the game starts or when spawned
@@ -111,25 +111,21 @@ void AThirdPersonPawn::SetActorSpeed(float Speed)
 void AThirdPersonPawn::SetPerspective(Perspectives Perspective)
 {
 	auto t = UGameplayStatics::GetGameInstance(GetWorld());
-	auto CameraManager = Cast<UMyGameInstance>(t)->CameraManager();
+	const auto CameraManager = Cast<UMyGameInstance>(t)->CameraManager();
 	
 	currentPerspective = Perspective;
-	//FPSCamera->SetActive(false);
-	//TPSCamera->SetActive(false);
 	switch (Perspective)
 	{
 	case FPS:
-		//FPSCamera->SetActive(true);
 		CamControllerComponent->SetComponentRotatedLR(OrientationParent);
-		CameraManager->FollowTarget(OrientationParent, 0);
-		//CamControllerComponent->SetComponentRotatedUD(FPSCamera);
+		CameraManager->AttachToComponent(FPSCamTarget, 0);
+		CamControllerComponent->SetComponentRotatedUD(FPSCamTarget);
 		MoveComponent->OrientWithMovement = false;
 		break;
 	case TPS:
-		//TPSCamera->SetActive(true);
-		CameraManager->FollowTarget(TPSCameraParent, 300);
-		CamControllerComponent->SetComponentRotatedLR(TPSCameraParent);
-		CamControllerComponent->SetComponentRotatedUD(TPSCameraBoom);
+		CameraManager->AttachToComponent(TPSCamTarget, 300);
+		CamControllerComponent->SetComponentRotatedLR(TPSCamLRRot);
+		CamControllerComponent->SetComponentRotatedUD(TPSCamUDRot);
 		MoveComponent->OrientWithMovement = true;
 		break;
 	default:
@@ -141,7 +137,6 @@ void AThirdPersonPawn::SetPerspective(Perspectives Perspective)
 void AThirdPersonPawn::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
-	
 }
 
 // Called to bind functionality to input

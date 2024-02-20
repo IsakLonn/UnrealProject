@@ -21,23 +21,32 @@ protected:
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
 
+	USceneComponent* root;
+	
 	UPROPERTY(EditAnywhere)
 	UCameraComponent* Camera;
 
 	UPROPERTY(EditAnywhere)
 	USpringArmComponent* CameraBoom;
 
-	USceneComponent* _FollowTarget;
+public:
 
-public:	
 	// Called every frame
 	virtual void Tick(float DeltaTime) override;
 
-	//sets target for camera to follow
-	//FollowDistance sets how far away to follow selected target
-	//For example Followdistance 0 == FPS view
-	void FollowTarget(USceneComponent* target, float FollowDistance);
+	//attaches the camera to a new target
+	//FollowDistance sets the target arm length for the spring arm
+	void AttachToComponent(USceneComponent* Target, float TargetArmLength, bool SnapToTarget = true) const;
+
+	//returns the camera to the manager, i.e. reattaches the camera to the manager
+	void ReturnCamera() const;
+
+	void SetLocation(FVector Location, bool bRelativeLocation) const;
+	void SetRotation(FRotator Rotation, bool bRelativeRotation) const;
+
+	void SetTargetArmLength(float TargetArmLength) const;
+
+	void SetFOV(float FOV) const;
 
 	
-
 };

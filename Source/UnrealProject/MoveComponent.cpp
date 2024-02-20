@@ -63,6 +63,7 @@ void UMoveComponent::TickComponent(float DeltaTime, ELevelTick TickType, FActorC
 	Super::TickComponent(DeltaTime, TickType, ThisTickFunction);
 	TryMovePawn(DeltaTime);
 	if (OrientWithMovement) OrientVisualsWithMovement();
+	
 	// ...
 }
 
