@@ -91,6 +91,9 @@ protected:
 	//sets value for how fast the actor moves
 	UFUNCTION(BlueprintCallable)
 	void SetActorSpeed(float Speed);
+	
+	UFUNCTION(BlueprintCallable)
+	void Jump();
 
 	UFUNCTION(BlueprintCallable)
 	void SetPerspective(Perspectives Perspective);

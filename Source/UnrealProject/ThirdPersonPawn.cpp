@@ -69,6 +69,7 @@ void AThirdPersonPawn::BeginPlay()
 	MoveComponent->SetController(ControllerComponent);
 	MoveComponent->SetOrientation(OrientationParent);
 	MoveComponent->SetActorSpeed(WalkSpeed);
+	MoveComponent->SetCollider(Collider);
 	
 	SetPerspective(TPS);
 	
@@ -115,6 +116,11 @@ void AThirdPersonPawn::SetActorSpeed(float Speed)
 	MoveComponent->SetActorSpeed(Speed);
 }
 
+void AThirdPersonPawn::Jump()
+{
+	MoveComponent->Jump();
+}
+
 void AThirdPersonPawn::SetPerspective(Perspectives Perspective)
 {
 	auto t = UGameplayStatics::GetGameInstance(GetWorld());
@@ -127,13 +133,13 @@ void AThirdPersonPawn::SetPerspective(Perspectives Perspective)
 		CamControllerComponent->SetComponentRotatedLR(OrientationParent);
 		CameraManager->AttachToComponent(FPSCamTarget, 0);
 		CamControllerComponent->SetComponentRotatedUD(FPSCamTarget);
-		MoveComponent->OrientWithMovement = false;
+		MoveComponent->SetOrientWithMovement(false);
 		break;
 	case TPS:
 		CameraManager->AttachToComponent(TPSCamTarget, 300);
 		CamControllerComponent->SetComponentRotatedLR(TPSCamLRRot);
 		CamControllerComponent->SetComponentRotatedUD(TPSCamUDRot);
-		MoveComponent->OrientWithMovement = true;
+		MoveComponent->SetOrientWithMovement(true);
 		break;
 	default:
 		break;

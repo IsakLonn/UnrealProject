@@ -4,31 +4,60 @@
 #include "MoveComponent.h"
 
 #include "ControllerComponent.h"
+#include "Components/CapsuleComponent.h"
 #include "Kismet/KismetMathLibrary.h"
 
-void UMoveComponent::TickComponent(float DeltaTime, ELevelTick TickType,
-                                             FActorComponentTickFunction* ThisTickFunction)
+void UMoveComponent::TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction)
 {
 	Super::TickComponent(DeltaTime, TickType, ThisTickFunction);
+	GroundCheck();
 	TryMovePawn(DeltaTime);
 	if(OrientWithMovement) OrientVisualsWithMovement();
-	
 }
 
 void UMoveComponent::OrientVisualsWithMovement()
 {
+	//nullchecks
 	if (Orientation == nullptr || Controller == nullptr) return;
-	
+
+	//get data from controller
 	auto Input = Controller->GetMovementInput();
 	auto Forward = Controller->GetForwardVector();
 	auto Right = Controller->GetRightVector();
-	
-	if (Input.X == 0 && Input.Y == 0) return; // don't rotate player if no input exists
+
+	// don't rotate player if no input exists
+	if (Input.X == 0 && Input.Y == 0) return; 
+
+	//calculate rotation
 	FVector LookLocation = (Forward * Input.X) + (Right * Input.Y);
 	FVector ActorLocation = UpdatedComponent->GetComponentLocation();
 	FRotator Rotation = UKismetMathLibrary::FindLookAtRotation(ActorLocation, ActorLocation + LookLocation);
-	Rotation += VisualsDefaultRotation;
+	
 	Orientation->SetRelativeRotation(Rotation);
+}
+
+void UMoveComponent::GroundCheck()
+{
+	FHitResult*  HitResult = new FHitResult();
+	
+	FVector UpVector = UpdatedComponent->GetUpVector();
+	FVector ComponentLoc = UpdatedComponent->GetComponentLocation();
+	float ColliderHalfHeight = Collider->GetScaledCapsuleHalfHeight();
+	FVector FeetPos = ComponentLoc - (UpVector * ColliderHalfHeight) - 0.1f;
+	FVector EndTrace = FeetPos - UpVector;
+	
+	FCollisionQueryParams* TraceParams = new FCollisionQueryParams();
+
+	if(GetWorld()->LineTraceSingleByChannel(*HitResult, FeetPos, EndTrace, ECC_Visibility, *TraceParams)) bIsGrounded = true;
+
+	else bIsGrounded = false;
+}
+
+void UMoveComponent::Jump()
+{
+	if(!bIsGrounded) return;
+
+	GravitationalMovement += JumpStrength;
 }
 
 void UMoveComponent::TryMovePawn(float DeltaTime)
@@ -46,17 +75,23 @@ void UMoveComponent::TryMovePawn(float DeltaTime)
 	//Calculate desired movement
 	FVector DesiredMovementThisFrame = ((Forward * Input.X) + (Right * Input.Y) + (Up * Input.Z)) * ActorSpeed;
 
+	//add gravitational movement if enabled
+	if(bUseGravity)
+	{
+		if(bIsGrounded && GravitationalMovement <= 0) GravitationalMovement = 0;
+		else GravitationalMovement += Gravity * DeltaTime;
+
+		DesiredMovementThisFrame.Z += GravitationalMovement;
+	}
+	
 	if(!DesiredMovementThisFrame.IsNearlyZero())
 	{
 		FHitResult Hit;
 		SafeMoveUpdatedComponent(DesiredMovementThisFrame, UpdatedComponent->GetComponentRotation(), true, Hit);
 
-		if(Hit.IsValidBlockingHit())
-		{
-			SlideAlongSurface(DesiredMovementThisFrame, 1.0f - Hit.Time, Hit.Normal, Hit);
-		}
+		if(Hit.IsValidBlockingHit()) SlideAlongSurface(DesiredMovementThisFrame, 1.0f - Hit.Time, Hit.Normal, Hit);
 	}
-
+	
 }
 
 void UMoveComponent::SetOrientation(USceneComponent* _Orientation)
@@ -79,4 +114,22 @@ void UMoveComponent::SetController(UControllerComponent* _Controller)
 	Controller = _Controller;
 }
 
-void UMoveComponent::SetActorSpeed(float speed) { ActorSpeed = speed; }
+void UMoveComponent::SetCollider(UCapsuleComponent* _Collider)
+{
+	if (_Collider == nullptr)
+	{
+		UE_LOG(LogTemp, Fatal, TEXT("Collider sent in to SetCollider is null"));
+		return;
+	}
+	Collider = _Collider;
+}
+
+void UMoveComponent::SetActorSpeed(float Speed) { ActorSpeed = Speed; }
+
+void UMoveComponent::ToggleGravity(bool Toggle) { bUseGravity = Toggle;}
+
+void UMoveComponent::SetOrientWithMovement(bool Toggle) { OrientWithMovement = Toggle; }
+
+void UMoveComponent::SetGravity(float _Gravity){ Gravity = _Gravity; }
+
+

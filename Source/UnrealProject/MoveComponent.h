@@ -18,29 +18,53 @@ class UNREALPROJECT_API UMoveComponent : public UPawnMovementComponent
 public:
 	virtual void TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction) override;
 
+	//setters for references
+	
 	void SetOrientation(USceneComponent* _Orientation);
 	void SetController(UControllerComponent* _Controller);
+	void SetCollider(UCapsuleComponent* _Collider);
+	
+	//setters for component variables
 
-	//makes the mesh look where it is moving	
-	//sets value for actors speed
-	void SetActorSpeed(float speed);
-
-	bool OrientWithMovement = true;
+	
+	void SetActorSpeed(float Speed);
+	void ToggleGravity(bool Toggle);
+	void SetOrientWithMovement(bool Toggle);
+	void SetGravity(float _Gravity);
+	
+	void Jump();
 	
 protected:
 
-	//component for mesh, used for rotating
+	//References to other components
+	
+	//Reference to object that "looks" in move direction
 	USceneComponent* Orientation;
-	//controller with information about directions of movement
+	//Reference to Controller with information such as movement input
 	UControllerComponent* Controller;
+	//Reference to Collider
+	UCapsuleComponent* Collider;
+	
+	bool bIsGrounded;
 
-	//starting rotation for visuals/mesh
-	FRotator VisualsDefaultRotation;
+	float GravitationalMovement;
 
 	void TryMovePawn(float DeltaTime);
 
 	void OrientVisualsWithMovement();
 
+	void GroundCheck();
+
 	UPROPERTY(EditAnywhere, Category = "Movement settings")
 	float ActorSpeed;
+	UPROPERTY(EditAnywhere, Category = "Movement settings")
+	float JumpStrength;
+
+	UPROPERTY(EditAnywhere, Category = "Gravity settings")
+	bool bUseGravity;
+	UPROPERTY(EditAnywhere, Category = "Gravity settings")
+	float Gravity;
+	
+	UPROPERTY(EditAnywhere, Category = "Visual settings")
+	bool OrientWithMovement = true;
 };
