@@ -10,34 +10,42 @@
 // Sets default values
 AThirdPersonPawn::AThirdPersonPawn()
 {
+
  	// Set this pawn to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
 	PrimaryActorTick.bCanEverTick = true;
+
+	//create root component
 	Collider = CreateDefaultSubobject<UCapsuleComponent>(TEXT("CapsuleCollider"));
 	RootComponent = Collider;
 
+	//create object rotated
 	OrientationParent = CreateDefaultSubobject<USceneComponent>(TEXT("OrientationParent"));
 	OrientationParent->SetupAttachment(RootComponent);
-	
+
+	//create skeleton mesh
 	PlayerMesh = CreateDefaultSubobject<USkeletalMeshComponent>(TEXT("PlayerMesh"));
 	PlayerMesh->SetupAttachment(OrientationParent);
 
-	MoveComponent = CreateDefaultSubobject<UMoveComponent>(TEXT("MoveComponent"));
-	MoveComponent->SetupAttachment(RootComponent);	
-
-	CamControllerComponent = CreateDefaultSubobject<UCamControllerComponent>(TEXT("CamController"));
-	CamControllerComponent->SetupAttachment(RootComponent);
-
+	//create third-person cam root, also object rotated left/right while in third-person
 	TPSCamLRRot = CreateDefaultSubobject<USceneComponent>(TEXT("TPSCamLRRot"));
 	TPSCamLRRot->SetupAttachment(RootComponent);
-	
+
+	//create third-person cam root, also object rotated up/down while in third-person
 	TPSCamUDRot = CreateDefaultSubobject<USceneComponent>(TEXT("TPSCamUDRot"));
 	TPSCamUDRot->SetupAttachment(TPSCamLRRot);
-	
+
+	//create third-person cam target
 	TPSCamTarget = CreateDefaultSubobject<USceneComponent>(TEXT("TPSCamTarget"));
 	TPSCamTarget->SetupAttachment(TPSCamUDRot);
 
+	//create first-person cam target
 	FPSCamTarget = CreateDefaultSubobject<USceneComponent>(TEXT("FPSCamTarget"));
 	FPSCamTarget->SetupAttachment(OrientationParent);
+
+	//set up custom components
+	CamControllerComponent = CreateDefaultSubobject<UCamControllerComponent>(TEXT("CamController"));
+	MoveComponent = CreateDefaultSubobject<UMoveComponent>(TEXT("MoveComponent"));
+	MoveComponent->UpdatedComponent = RootComponent;
 }
 
 // Called when the game starts or when spawned
@@ -59,7 +67,6 @@ void AThirdPersonPawn::BeginPlay()
 
 	//set move component references/settings
 	MoveComponent->SetController(ControllerComponent);
-	MoveComponent->SetPawn(this);
 	MoveComponent->SetOrientation(OrientationParent);
 	MoveComponent->SetActorSpeed(WalkSpeed);
 	
@@ -70,19 +77,19 @@ void AThirdPersonPawn::BeginPlay()
 void AThirdPersonPawn::SetMovementInputLR(float Value)
 {
 	
-	if (!bCanMove) return;
+	if (!bCanMove || !MoveComponent || (MoveComponent->UpdatedComponent != RootComponent)) return;
 	ControllerComponent->SetMovementInputY(Value);
 }
 
 void AThirdPersonPawn::SetMovementInputFB(float Value)
 {
-	if (!bCanMove) return;
+	if (!bCanMove || !MoveComponent || (MoveComponent->UpdatedComponent != RootComponent)) return;
 	ControllerComponent->SetMovementInputX(Value);
 }
 
 void AThirdPersonPawn::SetMovementInputUD(float Value)
 {
-	if (!bCanMove) return;
+	if (!bCanMove || !MoveComponent || (MoveComponent->UpdatedComponent != RootComponent)) return;
 	ControllerComponent->SetMovementInputZ(Value);
 }
 

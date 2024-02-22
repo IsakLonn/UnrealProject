@@ -11,6 +11,7 @@
 #include "MoveComponent.h"
 #include "CamControllerComponent.h"
 #include "ControllerComponent.h"
+#include "MoveComponent.h"
 #include "ThirdPersonPawn.generated.h"
 
 UENUM(BlueprintType)
@@ -60,7 +61,7 @@ protected:
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
 	USceneComponent* FPSCamTarget;
 
-	UPROPERTY(Instanced, EditDefaultsOnly)
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
 	UMoveComponent* MoveComponent;
 
 	UPROPERTY(Instanced, EditDefaultsOnly)

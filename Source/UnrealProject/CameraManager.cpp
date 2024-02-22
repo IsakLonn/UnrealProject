@@ -31,7 +31,6 @@ ACameraManager::ACameraManager()
     	auto playerController = UGameplayStatics::GetPlayerController(GetWorld(), 0);
 
     	if(playerController != nullptr)playerController->SetViewTarget(this);
-    	UE_LOG(LogTemp, Warning, TEXT("The playerController value is %s"), ( playerController != nullptr ? TEXT("true") : TEXT("false") ));
     }
 	
 }

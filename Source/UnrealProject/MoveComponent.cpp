@@ -2,79 +2,61 @@
 
 
 #include "MoveComponent.h"
+
+#include "ControllerComponent.h"
 #include "Kismet/KismetMathLibrary.h"
 
-// Sets default values for this component's properties
-UMoveComponent::UMoveComponent()
+void UMoveComponent::TickComponent(float DeltaTime, ELevelTick TickType,
+                                             FActorComponentTickFunction* ThisTickFunction)
 {
-	// Set this component to be initialized when the game starts, and to be ticked every frame.  You can turn these features
-	// off to improve performance if you don't need them.
-	PrimaryComponentTick.bCanEverTick = true;
-	// ...
-}
-
-
-// Called when the game starts
-void UMoveComponent::BeginPlay()
-{
-	Super::BeginPlay();
+	Super::TickComponent(DeltaTime, TickType, ThisTickFunction);
+	TryMovePawn(DeltaTime);
+	if(OrientWithMovement) OrientVisualsWithMovement();
 	
 }
 
 void UMoveComponent::OrientVisualsWithMovement()
 {
-	if (Pawn == nullptr || Orientation == nullptr || Controller == nullptr) return;
+	if (Orientation == nullptr || Controller == nullptr) return;
+	
 	auto Input = Controller->GetMovementInput();
 	auto Forward = Controller->GetForwardVector();
 	auto Right = Controller->GetRightVector();
+	
 	if (Input.X == 0 && Input.Y == 0) return; // don't rotate player if no input exists
 	FVector LookLocation = (Forward * Input.X) + (Right * Input.Y);
-	FVector ActorLocation = Pawn->GetActorLocation();
+	FVector ActorLocation = UpdatedComponent->GetComponentLocation();
 	FRotator Rotation = UKismetMathLibrary::FindLookAtRotation(ActorLocation, ActorLocation + LookLocation);
 	Rotation += VisualsDefaultRotation;
 	Orientation->SetRelativeRotation(Rotation);
 }
 
-void UMoveComponent::SetActorSpeed(float speed) { ActorSpeed = speed; }
-
 void UMoveComponent::TryMovePawn(float DeltaTime)
 {
-	//check for nullptr references
-	if (Pawn == nullptr || Controller == nullptr) return;
 
-	//get current position, input, and directional vectors
-	FVector NewLocation = Pawn->GetActorLocation();
+	//nullchecks
+	if(!PawnOwner || !UpdatedComponent || ShouldSkipUpdate(DeltaTime) || !Controller) return;
+	
+	//get input and directional vectors
 	FVector Forward = Controller->GetForwardVector();
 	FVector Right = Controller->GetRightVector();
 	FVector Up = Controller->GetUpVector();
-	FVector Input = Controller->GetMovementInput();
+	FVector Input = Controller->GetMovementInput().GetClampedToMaxSize(1.0f);
 
-	//update position
-	NewLocation += ((Forward * Input.X) + (Right * Input.Y) + (Up * Input.Z)) * ActorSpeed;
+	//Calculate desired movement
+	FVector DesiredMovementThisFrame = ((Forward * Input.X) + (Right * Input.Y) + (Up * Input.Z)) * ActorSpeed;
 
-	//set new position
-	Pawn->SetActorLocation(NewLocation);
-
-}
-
-// Called every frame
-void UMoveComponent::TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction)
-{
-	Super::TickComponent(DeltaTime, TickType, ThisTickFunction);
-	TryMovePawn(DeltaTime);
-	if (OrientWithMovement) OrientVisualsWithMovement();
-	
-	// ...
-}
-
-void UMoveComponent::SetPawn(APawn* _Pawn)
-{
-	if (_Pawn == nullptr)
+	if(!DesiredMovementThisFrame.IsNearlyZero())
 	{
-		UE_LOG(LogTemp, Fatal, TEXT("Pawn sent in to SetPawn is null"));
-		return;
+		FHitResult Hit;
+		SafeMoveUpdatedComponent(DesiredMovementThisFrame, UpdatedComponent->GetComponentRotation(), true, Hit);
+
+		if(Hit.IsValidBlockingHit())
+		{
+			SlideAlongSurface(DesiredMovementThisFrame, 1.0f - Hit.Time, Hit.Normal, Hit);
+		}
 	}
-	Pawn = _Pawn;
+
 }
 
 void UMoveComponent::SetOrientation(USceneComponent* _Orientation)
@@ -97,3 +79,4 @@ void UMoveComponent::SetController(UControllerComponent* _Controller)
 	Controller = _Controller;
 }
 
+void UMoveComponent::SetActorSpeed(float speed) { ActorSpeed = speed; }
