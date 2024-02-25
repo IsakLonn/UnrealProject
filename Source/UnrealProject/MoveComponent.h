@@ -25,7 +25,6 @@ public:
 	void SetCollider(UCapsuleComponent* _Collider);
 	
 	//setters for component variables
-
 	
 	void SetActorSpeed(float Speed);
 	void ToggleGravity(bool Toggle);
@@ -46,14 +45,25 @@ protected:
 	UCapsuleComponent* Collider;
 	
 	bool bIsGrounded;
+	bool bOnSlope;
+
+	FHitResult* GroundRayCast = new FHitResult();
 
 	float GravitationalMovement;
 
-	void TryMovePawn(float DeltaTime);
+	//tries to move actor according to input from controller
+	void TryMoveActor(float DeltaTime);
 
-	void OrientVisualsWithMovement();
+	//orients visuals to face towards movement, without the Z value
+	void OrientVisualsWithMovement() const;
 
 	void GroundCheck();
+
+	// checks for ground and updates variables:
+	// bOnSlope - bool for if actor is on a slope
+	// bIsGrounded - bool for if actor is on the ground
+	// GroundRayCast - FHitResult with ground information
+	void RayCastGroundTick();
 
 	UPROPERTY(EditAnywhere, Category = "Movement settings")
 	float ActorSpeed;

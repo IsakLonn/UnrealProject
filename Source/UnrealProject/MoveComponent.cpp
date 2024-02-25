@@ -4,18 +4,19 @@
 #include "MoveComponent.h"
 
 #include "ControllerComponent.h"
+#include "Math.h"
 #include "Components/CapsuleComponent.h"
 #include "Kismet/KismetMathLibrary.h"
 
 void UMoveComponent::TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction)
 {
 	Super::TickComponent(DeltaTime, TickType, ThisTickFunction);
-	GroundCheck();
-	TryMovePawn(DeltaTime);
+	RayCastGroundTick();
+	TryMoveActor(DeltaTime);
 	if(OrientWithMovement) OrientVisualsWithMovement();
 }
 
-void UMoveComponent::OrientVisualsWithMovement()
+void UMoveComponent::OrientVisualsWithMovement() const
 {
 	//nullchecks
 	if (Orientation == nullptr || Controller == nullptr) return;
@@ -36,21 +37,51 @@ void UMoveComponent::OrientVisualsWithMovement()
 	Orientation->SetRelativeRotation(Rotation);
 }
 
-void UMoveComponent::GroundCheck()
+void UMoveComponent::GroundCheck() // add so player will move to ground position when sloped
 {
-	FHitResult*  HitResult = new FHitResult();
-	
+	if(!bIsGrounded) return;
+	 if(bIsGrounded)
+	 {
+	 	auto Distance = FVector::Distance(GroundRayCast->Location, GetActorFeetLocation());
+	 	
+		auto Angle = AMath::Angle(GroundRayCast->Normal, UpdatedComponent->GetUpVector());
+	 	UE_LOG(LogTemp, Warning, TEXT("The Angle value is: %f"), Angle);
+	 	if(Angle > 0 &&Angle < 45) bIsGrounded = true;
+	    else
+	    {
+	    	if(Distance <= 1) bIsGrounded = true;
+	    	else bIsGrounded = false;
+	    }
+	 }
+}
+
+void UMoveComponent::RayCastGroundTick()
+{
+	//reset bools before checks
+	bIsGrounded = false;
+	bOnSlope = false;
+
+	//get/calculate raycast direction
 	FVector UpVector = UpdatedComponent->GetUpVector();
-	FVector ComponentLoc = UpdatedComponent->GetComponentLocation();
+	FVector ActorLocation = UpdatedComponent->GetComponentLocation();
 	float ColliderHalfHeight = Collider->GetScaledCapsuleHalfHeight();
-	FVector FeetPos = ComponentLoc - (UpVector * ColliderHalfHeight) - 0.1f;
-	FVector EndTrace = FeetPos - UpVector;
-	
+	FVector FeetPos = GetActorFeetLocation();
+	FVector EndTrace = FeetPos - UpVector * 100;
+
+	//setup collisions to ignore
 	FCollisionQueryParams* TraceParams = new FCollisionQueryParams();
-
-	if(GetWorld()->LineTraceSingleByChannel(*HitResult, FeetPos, EndTrace, ECC_Visibility, *TraceParams)) bIsGrounded = true;
-
-	else bIsGrounded = false;
+	TraceParams->AddIgnoredActor(UpdatedComponent->GetAttachmentRootActor());
+	
+	//cast checks
+	
+	if(GetWorld()->LineTraceSingleByChannel(*GroundRayCast, ActorLocation, EndTrace, ECC_Visibility, *TraceParams))
+	{
+		auto Distance = FVector::Distance(GroundRayCast->Location, GetActorFeetLocation());
+		bIsGrounded = Distance <= 1; // fix this
+		auto Angle = AMath::Angle(GroundRayCast->Normal, UpVector);
+		UE_LOG(LogTemp, Warning, TEXT("The Angle value is: %f"), Angle);
+		if(AMath::InRange(Angle, 0, 45)) bOnSlope = true;
+	}
 }
 
 void UMoveComponent::Jump()
@@ -60,7 +91,7 @@ void UMoveComponent::Jump()
 	GravitationalMovement += JumpStrength;
 }
 
-void UMoveComponent::TryMovePawn(float DeltaTime)
+void UMoveComponent::TryMoveActor(float DeltaTime)
 {
 
 	//nullchecks
@@ -71,25 +102,34 @@ void UMoveComponent::TryMovePawn(float DeltaTime)
 	FVector Right = Controller->GetRightVector();
 	FVector Up = Controller->GetUpVector();
 	FVector Input = Controller->GetMovementInput().GetClampedToMaxSize(1.0f);
-
+	
 	//Calculate desired movement
-	FVector DesiredMovementThisFrame = ((Forward * Input.X) + (Right * Input.Y) + (Up * Input.Z)) * ActorSpeed;
+	FVector DesiredMovementThisFrame = ((Forward * Input.X) + (Right * Input.Y) + (Up * Input.Z));
 
+	if(bOnSlope) DesiredMovementThisFrame = UKismetMathLibrary::ProjectVectorOnToPlane(DesiredMovementThisFrame, GroundRayCast->Normal);
+
+	DesiredMovementThisFrame *= ActorSpeed;
 	//add gravitational movement if enabled
 	if(bUseGravity)
 	{
 		if(bIsGrounded && GravitationalMovement <= 0) GravitationalMovement = 0;
 		else GravitationalMovement += Gravity * DeltaTime;
-
+		
 		DesiredMovementThisFrame.Z += GravitationalMovement;
 	}
+	
 	
 	if(!DesiredMovementThisFrame.IsNearlyZero())
 	{
 		FHitResult Hit;
 		SafeMoveUpdatedComponent(DesiredMovementThisFrame, UpdatedComponent->GetComponentRotation(), true, Hit);
 
-		if(Hit.IsValidBlockingHit()) SlideAlongSurface(DesiredMovementThisFrame, 1.0f - Hit.Time, Hit.Normal, Hit);
+		if(Hit.IsValidBlockingHit())
+		{
+			auto Angle = AMath::Angle(Hit.Normal, Up);
+			SlideAlongSurface(DesiredMovementThisFrame, 1.0f - Hit.Time, Hit.Normal, Hit);
+			
+		}
 	}
 	
 }
