@@ -16,6 +16,6 @@ class UNREALPROJECT_API AMath : public AInfo
 
 public:
 	static float Angle(FVector V1, FVector V2);
-	static bool InRange(float value, float min, float max);
+	static bool WithinRange(float value, float min, float max);
 	
 };

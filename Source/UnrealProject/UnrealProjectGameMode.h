@@ -3,7 +3,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "ThirdPersonPawn.h"
+#include "PlayerPawn.h"
 #include "GameFramework/GameModeBase.h"
 #include "UnrealProjectGameMode.generated.h"
 
@@ -22,6 +22,6 @@ protected:
 
 
 	UPROPERTY(EditAnywhere, NoClear)
-	TSubclassOf<AThirdPersonPawn> CustomPawnClass = AThirdPersonPawn::StaticClass();
+	TSubclassOf<APlayerPawn> CustomPawnClass = APlayerPawn::StaticClass();
 	
 };

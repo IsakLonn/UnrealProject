@@ -4,15 +4,12 @@
 
 #include "CoreMinimal.h"
 #include "GameFramework/Pawn.h"
-#include "GameFramework/SpringArmComponent.h"
 #include "Components/CapsuleComponent.h"
 #include "Components/SkeletalMeshComponent.h"
-#include "Camera/CameraComponent.h"
 #include "MoveComponent.h"
 #include "CamControllerComponent.h"
 #include "ControllerComponent.h"
-#include "MoveComponent.h"
-#include "ThirdPersonPawn.generated.h"
+#include "PlayerPawn.generated.h"
 
 UENUM(BlueprintType)
 enum Perspectives
@@ -21,13 +18,13 @@ enum Perspectives
   TPS      UMETA(DisplayName = "Third person"),
 };
 UCLASS()
-class UNREALPROJECT_API AThirdPersonPawn : public APawn
+class UNREALPROJECT_API APlayerPawn : public APawn
 {
 	GENERATED_BODY()
 
 public:
 	// Sets default values for this pawn's properties
-	AThirdPersonPawn();
+	APlayerPawn();
 
 	// Called every frame
 	virtual void Tick(float DeltaTime) override;
@@ -67,6 +64,7 @@ protected:
 	UPROPERTY(Instanced, EditDefaultsOnly)
 	UCamControllerComponent* CamControllerComponent;
 
+	UPROPERTY()
 	UControllerComponent* ControllerComponent;
 
 	//sets value for left/right movement

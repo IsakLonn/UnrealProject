@@ -19,7 +19,7 @@ float AMath::Angle(FVector V1, FVector V2)
 	return FMath::RadiansToDegrees(AngleInRadians);
 }
 
-bool AMath::InRange(float value, float min, float max)
+bool AMath::WithinRange(float value, float min, float max)
 {
 	return value >= min && value <= max;
 }

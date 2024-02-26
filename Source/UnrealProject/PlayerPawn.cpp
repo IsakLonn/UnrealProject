@@ -1,14 +1,12 @@
 // Fill out your copyright notice in the Description page of Project Settings.
 
 
-#include "ThirdPersonPawn.h"
-
+#include "PlayerPawn.h"
 #include "MyGameInstance.h"
 #include "Kismet/GameplayStatics.h"
-#include "Kismet/KismetMathLibrary.h"
 
 // Sets default values
-AThirdPersonPawn::AThirdPersonPawn()
+APlayerPawn::APlayerPawn()
 {
 
  	// Set this pawn to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
@@ -49,7 +47,7 @@ AThirdPersonPawn::AThirdPersonPawn()
 }
 
 // Called when the game starts or when spawned
-void AThirdPersonPawn::BeginPlay()
+void APlayerPawn::BeginPlay()
 {
 	
 	Super::BeginPlay();
@@ -61,10 +59,10 @@ void AThirdPersonPawn::BeginPlay()
 		check(ControllerComponent != nullptr)
 		ControllerComponent->RegisterComponent();
 	}
-
+	UE_LOG(LogTemp, Warning, TEXT("The boolean value is %s"), ( MoveComponent != nullptr ? TEXT("true") : TEXT("false") ));
 	//set cam controller references/settings
 	CamControllerComponent->SetController(ControllerComponent);
-
+	
 	//set move component references/settings
 	MoveComponent->SetController(ControllerComponent);
 	MoveComponent->SetOrientation(OrientationParent);
@@ -75,53 +73,53 @@ void AThirdPersonPawn::BeginPlay()
 	
 }
 
-void AThirdPersonPawn::SetMovementInputLR(float Value)
+void APlayerPawn::SetMovementInputLR(float Value)
 {
 	
 	if (!bCanMove || !MoveComponent || (MoveComponent->UpdatedComponent != RootComponent)) return;
 	ControllerComponent->SetMovementInputY(Value);
 }
 
-void AThirdPersonPawn::SetMovementInputFB(float Value)
+void APlayerPawn::SetMovementInputFB(float Value)
 {
 	if (!bCanMove || !MoveComponent || (MoveComponent->UpdatedComponent != RootComponent)) return;
 	ControllerComponent->SetMovementInputX(Value);
 }
 
-void AThirdPersonPawn::SetMovementInputUD(float Value)
+void APlayerPawn::SetMovementInputUD(float Value)
 {
 	if (!bCanMove || !MoveComponent || (MoveComponent->UpdatedComponent != RootComponent)) return;
 	ControllerComponent->SetMovementInputZ(Value);
 }
 
-void AThirdPersonPawn::SetPitchInput(float Value)
+void APlayerPawn::SetPitchInput(float Value)
 {
 	if(ControllerComponent == nullptr) return;
 	ControllerComponent->SetPitchInput(Value);
 }
 
-void AThirdPersonPawn::SetYawInput(float Value)
+void APlayerPawn::SetYawInput(float Value)
 {
 	if(ControllerComponent == nullptr) return;
 	ControllerComponent->SetYawInput(Value);
 }
 
-void AThirdPersonPawn::ToggleMovement(bool Toggle)
+void APlayerPawn::ToggleMovement(bool Toggle)
 {
 	bCanMove = Toggle;
 }
 
-void AThirdPersonPawn::SetActorSpeed(float Speed)
+void APlayerPawn::SetActorSpeed(float Speed)
 {
 	MoveComponent->SetActorSpeed(Speed);
 }
 
-void AThirdPersonPawn::Jump()
+void APlayerPawn::Jump()
 {
 	MoveComponent->Jump();
 }
 
-void AThirdPersonPawn::SetPerspective(Perspectives Perspective)
+void APlayerPawn::SetPerspective(Perspectives Perspective)
 {
 	auto t = UGameplayStatics::GetGameInstance(GetWorld());
 	const auto CameraManager = Cast<UMyGameInstance>(t)->CameraManager();
@@ -147,13 +145,13 @@ void AThirdPersonPawn::SetPerspective(Perspectives Perspective)
 }
 
 // Called every frame
-void AThirdPersonPawn::Tick(float DeltaTime)
+void APlayerPawn::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
 }
 
 // Called to bind functionality to input
-void AThirdPersonPawn::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
+void APlayerPawn::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
 {
 	
 	Super::SetupPlayerInputComponent(PlayerInputComponent);

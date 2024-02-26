@@ -57,14 +57,12 @@ protected:
 	//orients visuals to face towards movement, without the Z value
 	void OrientVisualsWithMovement() const;
 
-	void GroundCheck();
-
 	// checks for ground and updates variables:
 	// bOnSlope - bool for if actor is on a slope
 	// bIsGrounded - bool for if actor is on the ground
 	// GroundRayCast - FHitResult with ground information
 	void RayCastGroundTick();
-
+	
 	UPROPERTY(EditAnywhere, Category = "Movement settings")
 	float ActorSpeed;
 	UPROPERTY(EditAnywhere, Category = "Movement settings")
@@ -74,7 +72,13 @@ protected:
 	bool bUseGravity;
 	UPROPERTY(EditAnywhere, Category = "Gravity settings")
 	float Gravity;
+
+	UPROPERTY(EditAnywhere,meta=(ClampMin="0", ClampMax="60"), Category = "Slope settings")
+	float MaxSlopeAngle;
 	
 	UPROPERTY(EditAnywhere, Category = "Visual settings")
 	bool OrientWithMovement = true;
+
+	UPROPERTY(EditAnywhere, Category = "Debug settings")
+	bool ShowGroundRayCast = true;
 };

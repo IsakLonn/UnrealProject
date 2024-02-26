@@ -4,7 +4,6 @@
 
 #include "CoreMinimal.h"
 #include "Components/SceneComponent.h"
-#include "Camera/CameraComponent.h"
 #include "ControllerComponent.h"
 #include "CamControllerComponent.generated.h"
 
