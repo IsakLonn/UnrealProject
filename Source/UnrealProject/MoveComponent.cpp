@@ -45,36 +45,64 @@ void UMoveComponent::RayCastGroundTick()
 
 	TArray<AActor*> BoxCastOutActors;
 
-	//get/calculate raycast direction
-	FVector UpVector = UpdatedComponent->GetUpVector();
-	FVector ActorLocation = UpdatedComponent->GetComponentLocation();
-	float ColliderHalfHeight = Collider->GetScaledCapsuleHalfHeight();
-	float ColliderRadius = Collider->GetScaledCapsuleRadius();
-	FVector FeetPos = GetActorFeetLocation();
-	FVector EndTrace = FeetPos - UpVector * 25;
-	FVector RadiusHalfSize = {ColliderRadius, ColliderRadius, 2};
-
+	//get/calculate raycast direction and values used
+	const FVector UpVector = UpdatedComponent->GetUpVector();
+	const FVector ActorLocation = UpdatedComponent->GetComponentLocation();
+	const FVector FeetPos = GetActorFeetLocation();
+	const FVector EndTrace = FeetPos - UpVector * 100;
+	const float ColliderRadius = Collider->GetScaledCapsuleRadius();
+	
 	//setup collisions to ignore
 	FCollisionQueryParams* TraceParams = new FCollisionQueryParams();
 	TraceParams->AddIgnoredActor(UpdatedComponent->GetAttachmentRootActor());
-	
+
 	//cast checks
 	if(GetWorld()->LineTraceSingleByChannel(*GroundRayCast, ActorLocation, EndTrace, ECC_Visibility, *TraceParams))
 	{
+
+		//get distance to ground and angle of ground
 		
 		auto Distance = FVector::Distance(GroundRayCast->Location, FeetPos);
 		auto Angle = AMath::Angle(GroundRayCast->Normal, UpVector);
 
-		UE_LOG(LogTemp, Warning, TEXT("The Distance value is: %f"), Distance);
-		UE_LOG(LogTemp, Warning, TEXT("The Angle value is: %f"), Angle);
+		//check if cast is touching slope
 		
-		if(AMath::WithinRange(Angle, 0.1f, MaxSlopeAngle)) bOnSlope = true;
-		bIsGrounded = bOnSlope ? true : Distance < 1; // somehow sloped movement works with this
-		
+		if(AMath::WithinRange(Angle, 0.1f, MaxSlopeAngle))
+		{
 
-		//if debugging, show raycast
-		if(ShowGroundRayCast) DrawDebugLine(GetWorld(), ActorLocation, GroundRayCast->Location, FColor(255,0,0), false, 0.1f);
+			// get all "endtraces" for raycasting slope
+			
+			const FVector Forward = FeetPos + (Controller->GetForwardVector() * ColliderRadius);
+			const FVector Backward = FeetPos - (Controller->GetForwardVector() * ColliderRadius);
+			const FVector Right = FeetPos + (Controller->GetRightVector() * ColliderRadius);
+			const FVector Left = FeetPos - (Controller->GetRightVector() * ColliderRadius);
+
+			//put all endtraces in an array
+			
+			TArray EndTraces = {Forward, Backward, Right, Left};
+
+			FHitResult* SlopeCast = new FHitResult();
+
+			//raycast forward, backward, left and right to find lowest "angled" distance to ground
+			
+			for (auto _EndTrace : EndTraces)
+			{
+				if(GetWorld()->LineTraceSingleByChannel(*SlopeCast, FeetPos, _EndTrace, ECC_Visibility, *TraceParams))
+				{
+					bOnSlope = true;
+					bIsGrounded = true;
+					return;
+				}
+			}
+		}
+		else bIsGrounded = Distance < 1; 
 		
+		//if debugging, show raycast
+		if(DebugGroundRayCast)
+		{
+			if(bIsGrounded)DrawDebugLine(GetWorld(), FeetPos, GroundRayCast->Location, FColor(255,0,0), false, 0.1f);
+			if(bOnSlope)DrawDebugLine(GetWorld(), FeetPos, SlopeRayCast->Location, FColor(255,0,0), false, 0.1f);
+		}
 		
 	}
 }
@@ -101,7 +129,7 @@ void UMoveComponent::TryMoveActor(float DeltaTime)
 	//Calculate desired movement
 	FVector DesiredMovementThisFrame = ((Forward * Input.X) + (Right * Input.Y) + (Up * Input.Z));
 
-	if(bOnSlope) DesiredMovementThisFrame = UKismetMathLibrary::ProjectVectorOnToPlane(DesiredMovementThisFrame, GroundRayCast->Normal);
+	if(bIsGrounded) DesiredMovementThisFrame = UKismetMathLibrary::ProjectVectorOnToPlane(DesiredMovementThisFrame, GroundRayCast->Normal);
 
 	DesiredMovementThisFrame *= ActorSpeed;
 	//add gravitational movement if enabled
@@ -112,7 +140,6 @@ void UMoveComponent::TryMoveActor(float DeltaTime)
 		
 		DesiredMovementThisFrame.Z += GravitationalMovement;
 	}
-	
 	
 	if(!DesiredMovementThisFrame.IsNearlyZero())
 	{
@@ -167,5 +194,3 @@ void UMoveComponent::ToggleGravity(bool Toggle) { bUseGravity = Toggle;}
 void UMoveComponent::SetOrientWithMovement(bool Toggle) { OrientWithMovement = Toggle; }
 
 void UMoveComponent::SetGravity(float _Gravity){ Gravity = _Gravity; }
-
-

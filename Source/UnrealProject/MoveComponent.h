@@ -43,11 +43,16 @@ protected:
 	UControllerComponent* Controller;
 	//Reference to Collider
 	UCapsuleComponent* Collider;
+
+	//bools for ground/slope checks
 	
 	bool bIsGrounded;
 	bool bOnSlope;
 
+	//raycast for ground/slope
+	
 	FHitResult* GroundRayCast = new FHitResult();
+	FHitResult* SlopeRayCast = new FHitResult();
 
 	float GravitationalMovement;
 
@@ -80,5 +85,5 @@ protected:
 	bool OrientWithMovement = true;
 
 	UPROPERTY(EditAnywhere, Category = "Debug settings")
-	bool ShowGroundRayCast = true;
+	bool DebugGroundRayCast = true;
 };
