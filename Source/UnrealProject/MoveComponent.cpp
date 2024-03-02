@@ -11,8 +11,11 @@
 void UMoveComponent::TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction)
 {
 	Super::TickComponent(DeltaTime, TickType, ThisTickFunction);
-	RayCastGroundTick();
+
+	GroundCheckTick();
+	
 	TryMoveActor(DeltaTime);
+	SnapActorToGround();
 	if(OrientWithMovement) OrientVisualsWithMovement();
 }
 
@@ -37,74 +40,56 @@ void UMoveComponent::OrientVisualsWithMovement() const
 	Orientation->SetRelativeRotation(Rotation);
 }
 
-void UMoveComponent::RayCastGroundTick()
+void UMoveComponent::GroundCheckTick()
 {
-	//reset bools before checks
 	bIsGrounded = false;
-	bOnSlope = false;
 
-	TArray<AActor*> BoxCastOutActors;
+	//get/calculate values for sweep
+	
+	float radius = Collider->GetScaledCapsuleRadius() - 1;
+	FVector SweepLocation = GetActorFeetLocation() + Controller->GetUpVector() * ((radius) - 10);
 
-	//get/calculate raycast direction and values used
+	//setup collisions to ignore
+	
+	FCollisionQueryParams* TraceParams = new FCollisionQueryParams();
+	TraceParams->AddIgnoredActor(UpdatedComponent->GetAttachmentRootActor());
+	
+	FCollisionShape Shape = FCollisionShape::MakeSphere(radius);
+
+	FHitResult Hit;
+
+	//cast the sweep and check for collisions
+	if(GetWorld()->SweepSingleByChannel(Hit, SweepLocation, SweepLocation, FQuat::Identity, ECC_WorldStatic, Shape, *TraceParams))
+	{
+		
+		float Angle = AMath::Angle(Controller->GetUpVector(), Hit.Normal);
+		float WithinRange = AMath::WithinRange(Angle, 0, MaxSlopeAngle);
+		if(WithinRange) bIsGrounded = true;
+		
+	}
+}
+
+void UMoveComponent::SnapActorToGround()
+{
+	//nullchecks
+	if(!bUseGravity ||!bIsGrounded || GravitationalMovement > 0 || UpdatedComponent == nullptr) return;
+	
+	FHitResult Hit;
+
+	//get/calculate values for checks
+
 	const FVector UpVector = UpdatedComponent->GetUpVector();
-	const FVector ActorLocation = UpdatedComponent->GetComponentLocation();
-	const FVector FeetPos = GetActorFeetLocation();
-	const FVector EndTrace = FeetPos - UpVector * 100;
-	const float ColliderRadius = Collider->GetScaledCapsuleRadius();
+	const FVector StartTrace = UpdatedComponent->GetComponentLocation();
+	const FVector EndTrace = GetActorFeetLocation() - UpVector * 1000;
 	
 	//setup collisions to ignore
 	FCollisionQueryParams* TraceParams = new FCollisionQueryParams();
 	TraceParams->AddIgnoredActor(UpdatedComponent->GetAttachmentRootActor());
 
-	//cast checks
-	if(GetWorld()->LineTraceSingleByChannel(*GroundRayCast, ActorLocation, EndTrace, ECC_Visibility, *TraceParams))
-	{
+	//cast check and snap actor to location
+	if(GetWorld()->LineTraceSingleByChannel(Hit, StartTrace, EndTrace, ECC_Visibility, *TraceParams))
+		SafeMoveUpdatedComponent(Hit.Location - UpdatedComponent->GetComponentLocation(), UpdatedComponent->GetComponentRotation(), true, Hit);
 
-		//get distance to ground and angle of ground
-		
-		auto Distance = FVector::Distance(GroundRayCast->Location, FeetPos);
-		auto Angle = AMath::Angle(GroundRayCast->Normal, UpVector);
-
-		//check if cast is touching slope
-		
-		if(AMath::WithinRange(Angle, 0.1f, MaxSlopeAngle))
-		{
-
-			// get all "endtraces" for raycasting slope
-			
-			const FVector Forward = FeetPos + (Controller->GetForwardVector() * ColliderRadius);
-			const FVector Backward = FeetPos - (Controller->GetForwardVector() * ColliderRadius);
-			const FVector Right = FeetPos + (Controller->GetRightVector() * ColliderRadius);
-			const FVector Left = FeetPos - (Controller->GetRightVector() * ColliderRadius);
-
-			//put all endtraces in an array
-			
-			TArray EndTraces = {Forward, Backward, Right, Left};
-
-			FHitResult* SlopeCast = new FHitResult();
-
-			//raycast forward, backward, left and right to find lowest "angled" distance to ground
-			
-			for (auto _EndTrace : EndTraces)
-			{
-				if(GetWorld()->LineTraceSingleByChannel(*SlopeCast, FeetPos, _EndTrace, ECC_Visibility, *TraceParams))
-				{
-					bOnSlope = true;
-					bIsGrounded = true;
-					return;
-				}
-			}
-		}
-		else bIsGrounded = Distance < 1; 
-		
-		//if debugging, show raycast
-		if(DebugGroundRayCast)
-		{
-			if(bIsGrounded)DrawDebugLine(GetWorld(), FeetPos, GroundRayCast->Location, FColor(255,0,0), false, 0.1f);
-			if(bOnSlope)DrawDebugLine(GetWorld(), FeetPos, SlopeRayCast->Location, FColor(255,0,0), false, 0.1f);
-		}
-		
-	}
 }
 
 void UMoveComponent::Jump()
@@ -116,7 +101,7 @@ void UMoveComponent::Jump()
 
 void UMoveComponent::TryMoveActor(float DeltaTime)
 {
-
+	
 	//nullchecks
 	if(!PawnOwner || !UpdatedComponent || ShouldSkipUpdate(DeltaTime) || !Controller) return;
 	
@@ -127,11 +112,8 @@ void UMoveComponent::TryMoveActor(float DeltaTime)
 	FVector Input = Controller->GetMovementInput().GetClampedToMaxSize(1.0f);
 	
 	//Calculate desired movement
-	FVector DesiredMovementThisFrame = ((Forward * Input.X) + (Right * Input.Y) + (Up * Input.Z));
-
-	if(bIsGrounded) DesiredMovementThisFrame = UKismetMathLibrary::ProjectVectorOnToPlane(DesiredMovementThisFrame, GroundRayCast->Normal);
-
-	DesiredMovementThisFrame *= ActorSpeed;
+	FVector DesiredMovementThisFrame = ((Forward * Input.X) + (Right * Input.Y) + (Up * Input.Z)) * ActorSpeed;
+	
 	//add gravitational movement if enabled
 	if(bUseGravity)
 	{
@@ -140,57 +122,52 @@ void UMoveComponent::TryMoveActor(float DeltaTime)
 		
 		DesiredMovementThisFrame.Z += GravitationalMovement;
 	}
-	
+
 	if(!DesiredMovementThisFrame.IsNearlyZero())
 	{
 		FHitResult Hit;
+
 		SafeMoveUpdatedComponent(DesiredMovementThisFrame, UpdatedComponent->GetComponentRotation(), true, Hit);
-		
-		if(Hit.IsValidBlockingHit())
-		{
-			
-			SlideAlongSurface(DesiredMovementThisFrame, 1.0f - Hit.Time, Hit.Normal, Hit);
-			
-		}
+		if(Hit.IsValidBlockingHit()) SlideAlongSurface(DesiredMovementThisFrame, 1.0f - Hit.Time, Hit.Normal, Hit);
 	}
 	
 }
 
-void UMoveComponent::SetOrientation(USceneComponent* _Orientation)
+void UMoveComponent::SetOrientation(USceneComponent* NewOrientation)
 {
-	if (_Orientation == nullptr)
+	if (NewOrientation == nullptr)
 	{
 		UE_LOG(LogTemp, Fatal, TEXT("Orientation sent in to SetOrientation is null"));
 		return;
 	}
-	Orientation = _Orientation;
+	Orientation = NewOrientation;
 }
 
-void UMoveComponent::SetController(UControllerComponent* _Controller)
+void UMoveComponent::SetController(UControllerComponent* NewController)
 {
-	if (_Controller == nullptr)
+	if (NewController == nullptr)
 	{
 		UE_LOG(LogTemp, Fatal, TEXT("ControllerComponent sent in to SetControllerComponent is null"));
 		return;
 	}
 
-	Controller = _Controller;
+	Controller = NewController;
 }
 
-void UMoveComponent::SetCollider(UCapsuleComponent* _Collider)
+void UMoveComponent::SetCollider(UCapsuleComponent* NewCollider)
 {
-	if (_Collider == nullptr)
+	if (NewCollider == nullptr)
 	{
 		UE_LOG(LogTemp, Fatal, TEXT("Collider sent in to SetCollider is null"));
 		return;
 	}
-	Collider = _Collider;
+	Collider = NewCollider;
 }
 
-void UMoveComponent::SetActorSpeed(float Speed) { ActorSpeed = Speed; }
+void UMoveComponent::SetActorSpeed(const float Speed) { ActorSpeed = Speed; }
 
-void UMoveComponent::ToggleGravity(bool Toggle) { bUseGravity = Toggle;}
+void UMoveComponent::ToggleGravity(const bool Toggle) { bUseGravity = Toggle;}
 
-void UMoveComponent::SetOrientWithMovement(bool Toggle) { OrientWithMovement = Toggle; }
+void UMoveComponent::SetOrientWithMovement(const bool Toggle) { OrientWithMovement = Toggle; }
 
-void UMoveComponent::SetGravity(float _Gravity){ Gravity = _Gravity; }
+void UMoveComponent::SetGravity(const float NewGravity){ Gravity = NewGravity; }

@@ -20,40 +20,34 @@ public:
 
 	//setters for references
 	
-	void SetOrientation(USceneComponent* _Orientation);
-	void SetController(UControllerComponent* _Controller);
-	void SetCollider(UCapsuleComponent* _Collider);
+	void SetOrientation(USceneComponent* NewOrientation);
+	void SetController(UControllerComponent* NewController);
+	void SetCollider(UCapsuleComponent* NewCollider);
 	
 	//setters for component variables
 	
 	void SetActorSpeed(float Speed);
-	void ToggleGravity(bool Toggle);
-	void SetOrientWithMovement(bool Toggle);
-	void SetGravity(float _Gravity);
-	
+	void ToggleGravity(const bool Toggle);
+	void SetOrientWithMovement(const bool Toggle);
+	void SetGravity(const float NewGravity);
+
+	//makes actor jump
 	void Jump();
 	
 protected:
-
-	//References to other components
 	
 	//Reference to object that "looks" in move direction
+	UPROPERTY()
 	USceneComponent* Orientation;
 	//Reference to Controller with information such as movement input
+	UPROPERTY()
 	UControllerComponent* Controller;
 	//Reference to Collider
+	UPROPERTY()
 	UCapsuleComponent* Collider;
-
-	//bools for ground/slope checks
 	
 	bool bIsGrounded;
-	bool bOnSlope;
-
-	//raycast for ground/slope
 	
-	FHitResult* GroundRayCast = new FHitResult();
-	FHitResult* SlopeRayCast = new FHitResult();
-
 	float GravitationalMovement;
 
 	//tries to move actor according to input from controller
@@ -62,11 +56,11 @@ protected:
 	//orients visuals to face towards movement, without the Z value
 	void OrientVisualsWithMovement() const;
 
-	// checks for ground and updates variables:
-	// bOnSlope - bool for if actor is on a slope
-	// bIsGrounded - bool for if actor is on the ground
-	// GroundRayCast - FHitResult with ground information
-	void RayCastGroundTick();
+	// checks if actor is on ground and sets bool values accordingly(bIsGrounded and bOnSlope)
+	void GroundCheckTick();
+
+	//snaps actor to ground if actor is grounded
+	void SnapActorToGround();
 	
 	UPROPERTY(EditAnywhere, Category = "Movement settings")
 	float ActorSpeed;
@@ -78,7 +72,7 @@ protected:
 	UPROPERTY(EditAnywhere, Category = "Gravity settings")
 	float Gravity;
 
-	UPROPERTY(EditAnywhere,meta=(ClampMin="0", ClampMax="60"), Category = "Slope settings")
+	UPROPERTY(EditAnywhere,meta=(ClampMin="0", ClampMax="90"), Category = "Slope settings")
 	float MaxSlopeAngle;
 	
 	UPROPERTY(EditAnywhere, Category = "Visual settings")
