@@ -59,7 +59,7 @@ void APlayerPawn::BeginPlay()
 		check(ControllerComponent != nullptr)
 		ControllerComponent->RegisterComponent();
 	}
-	UE_LOG(LogTemp, Warning, TEXT("The boolean value is %s"), ( MoveComponent != nullptr ? TEXT("true") : TEXT("false") ));
+	Collider = GetComponentByClass<UCapsuleComponent>();
 	//set cam controller references/settings
 	CamControllerComponent->SetController(ControllerComponent);
 	

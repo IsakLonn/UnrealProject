@@ -11,6 +11,7 @@
  * 
  */
 UCLASS()
+//Custom move component for moving an actor with a Capsule collider root. Make sure to set its updated component correctly
 class UNREALPROJECT_API UMoveComponent : public UPawnMovementComponent
 {
 	GENERATED_BODY()
@@ -33,6 +34,10 @@ public:
 
 	//makes actor jump
 	void Jump();
+
+	//adds force to the pawn
+	UFUNCTION(BlueprintCallable)
+	void AddForce(FVector Direction, float Strength);
 	
 protected:
 	
@@ -51,16 +56,28 @@ protected:
 	float GravitationalMovement;
 
 	//tries to move actor according to input from controller
-	void TryMoveActor(float DeltaTime);
+	void SimpleMove(float DeltaTime);
+
+	//adds final movement after actor has been snapped correctly to the ground
+	// calculates movement such as:
+	// gravitational
+	//force
+	void FinalMove(float DeltaTime);
 
 	//orients visuals to face towards movement, without the Z value
-	void OrientVisualsWithMovement() const;
+	void RotateTowardsMovement(float DeltaTime, float RotationSpeed) const;
 
-	// checks if actor is on ground and sets bool values accordingly(bIsGrounded and bOnSlope)
-	void GroundCheckTick();
+	// checks if actor is on ground and sets bool bIsGrounded accordingly
+	void GroundCheck();
 
-	//snaps actor to ground if actor is grounded
+	//searches for an object below pawn and snaps it to stand on it
 	void SnapActorToGround();
+
+	//calculates and sets gravity value
+	void CalculateGravity(float DeltaTime);
+
+	//calculate and remove force
+	void CalculateForce(float DeltaTime);
 	
 	UPROPERTY(EditAnywhere, Category = "Movement settings")
 	float ActorSpeed;
@@ -80,4 +97,13 @@ protected:
 
 	UPROPERTY(EditAnywhere, Category = "Debug settings")
 	bool DebugGroundRayCast = true;
+
+	UPROPERTY(EditAnywhere, Category = "Force settings")
+	float ForceDissipationPerFrame;
+
+	UPROPERTY(EditAnywhere, Category = "Force settings")
+	float MaxAppliedForce;
+
+	//current force applied to the pawn
+	FVector Force;
 };
