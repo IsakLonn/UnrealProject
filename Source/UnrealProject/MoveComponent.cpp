@@ -6,16 +6,16 @@
 #include "Math.h"
 #include "Components/CapsuleComponent.h"
 #include "Kismet/KismetMathLibrary.h"
-#include "Kismet/KismetSystemLibrary.h"
 
 void UMoveComponent::TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction)
 {
 	Super::TickComponent(DeltaTime, TickType, ThisTickFunction);
-
+	
 	GroundCheck();
 	
 	CalculateGravity(DeltaTime);
 	CalculateForce(DeltaTime);
+	CalculateVelocity();
 	
 	SimpleMove(DeltaTime);
 	if(bUseGravity && bIsGrounded) SnapActorToGround();
@@ -46,6 +46,25 @@ void UMoveComponent::RotateTowardsMovement(float DeltaTime, float RotationSpeed)
 	FRotator CalculatedRotation = FMath::RInterpTo(Orientation->GetComponentRotation(), Target, DeltaTime, RotationSpeed);
 	
 	Orientation->SetRelativeRotation(CalculatedRotation);
+}
+
+void UMoveComponent::CalculateVelocity()
+{
+
+	//nullchecks
+	if(!Controller) return;
+	
+	//get input and directional vectors
+	FVector Forward = Controller->GetForwardVector();
+	FVector Right = Controller->GetRightVector();
+	FVector Up = Controller->GetUpVector();
+	FVector Input = Controller->GetMovementInput();
+
+	//Get desired movement
+	auto InputVelocity = ((Forward * Input.X) + (Right * Input.Y) + (Up * Input.Z));
+
+	Velocity = FMath::Lerp(Velocity, InputVelocity, Friction);
+	Velocity = Velocity.GetClampedToSize(-1, 1);
 }
 
 void UMoveComponent::GroundCheck()
@@ -140,11 +159,11 @@ void UMoveComponent::SimpleMove(float DeltaTime)
 	FVector Forward = Controller->GetForwardVector();
 	FVector Right = Controller->GetRightVector();
 	FVector Up = Controller->GetUpVector();
-	FVector Input = Controller->GetMovementInput().GetClampedToMaxSize(1.0f);
+	FVector Input = Velocity;
 	
 	//Calculate desired movement
-	FVector DesiredMovementThisFrame = ((Forward * Input.X) + (Right * Input.Y) + (Up * Input.Z)) * ActorSpeed;
-
+	//FVector DesiredMovementThisFrame = ((Forward * Input.X) + (Right * Input.Y) + (Up * Input.Z)) * ActorSpeed;
+	FVector DesiredMovementThisFrame = Velocity * ActorSpeed;
 	if(!DesiredMovementThisFrame.IsNearlyZero())
 	{
 		FHitResult Hit;

@@ -67,6 +67,9 @@ protected:
 	//orients visuals to face towards movement, without the Z value
 	void RotateTowardsMovement(float DeltaTime, float RotationSpeed) const;
 
+	//calculates velocity this frame
+	void CalculateVelocity();
+	
 	// checks if actor is on ground and sets bool bIsGrounded accordingly
 	void GroundCheck();
 
@@ -83,13 +86,15 @@ protected:
 	float ActorSpeed;
 	UPROPERTY(EditAnywhere, Category = "Movement settings")
 	float JumpStrength;
+	UPROPERTY(EditAnywhere, meta=(ClampMin="0", ClampMax="1"), Category = "Movement settings")
+	float Friction;
 
 	UPROPERTY(EditAnywhere, Category = "Gravity settings")
 	bool bUseGravity;
-	UPROPERTY(EditAnywhere, Category = "Gravity settings")
+	UPROPERTY(EditAnywhere, meta=(ClampMin="0", ClampMax="-90"), Category = "Gravity settings")
 	float Gravity;
 
-	UPROPERTY(EditAnywhere,meta=(ClampMin="0", ClampMax="90"), Category = "Slope settings")
+	UPROPERTY(EditAnywhere, meta=(ClampMin="0", ClampMax="90"), Category = "Slope settings")
 	float MaxSlopeAngle;
 	
 	UPROPERTY(EditAnywhere, Category = "Visual settings")
@@ -98,12 +103,13 @@ protected:
 	UPROPERTY(EditAnywhere, Category = "Debug settings")
 	bool DebugGroundRayCast = true;
 
-	UPROPERTY(EditAnywhere, Category = "Force settings")
+	UPROPERTY(EditAnywhere, meta=(ClampMin="0", ClampMax="100"), Category = "Force settings")
 	float ForceDissipationPerFrame;
 
-	UPROPERTY(EditAnywhere, Category = "Force settings")
+	UPROPERTY(EditAnywhere, meta=(ClampMin="0", ClampMax="100"), Category = "Force settings")
 	float MaxAppliedForce;
 
 	//current force applied to the pawn
 	FVector Force;
+	FVector Velocity;
 };
