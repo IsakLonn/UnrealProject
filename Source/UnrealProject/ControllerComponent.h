@@ -34,8 +34,11 @@ public:
 	void SetPitchInput(float Value);
 	void SetRollInput(float Value);
 
+	void SetIsJumping(bool Toggle);
+
 	FVector GetRotationInput() const;
 	FVector GetMovementInput() const;
+	bool ConsumeIsJumping();
 	
 protected:
 	
@@ -44,5 +47,7 @@ protected:
 	FVector Forward;
 	FVector Right;
 	FVector Up;
+
+	bool IsJumping;
 	
 };

@@ -3,6 +3,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "ActorMovementStateMachine.h"
 #include "GameFramework/Pawn.h"
 #include "Components/CapsuleComponent.h"
 #include "Components/SkeletalMeshComponent.h"
@@ -61,28 +62,23 @@ protected:
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
 	UMoveComponent* MoveComponent;
 
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
+	UActorMovementStateMachine* MovementStateMachine;
+
 	UPROPERTY(Instanced, EditDefaultsOnly)
 	UCamControllerComponent* CamControllerComponent;
 
 	UPROPERTY()
 	UControllerComponent* ControllerComponent;
 
-	//sets value for left/right movement
+	//call this function when wanting to set movement
 	UFUNCTION(BlueprintCallable)
-	void SetMovementInputLR(float Value);
-	//sets value for forward/back movement
-	UFUNCTION(BlueprintCallable)
-	void SetMovementInputFB(float Value);
-	//sets value for up/down movement
-	UFUNCTION(BlueprintCallable)
-	void SetMovementInputUD(float Value);
+	void OnMovementInput(FVector Input);
 
-	//sets value for left/right rotation
+	//call this function when wanting to set rotation
 	UFUNCTION(BlueprintCallable)
-	void SetPitchInput(float Value);
-	//sets value for up/down rotation
-	UFUNCTION(BlueprintCallable)
-	void SetYawInput(float Value);
+	void OnRotationInput(FVector2D Input);
+	
 	//toggles if the pawn can move or not
 	UFUNCTION(BlueprintCallable)
 	void ToggleMovement(bool Toggle);

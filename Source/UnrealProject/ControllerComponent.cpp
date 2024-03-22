@@ -37,7 +37,16 @@ void UControllerComponent::SetPitchInput(float Value) { RotationInput.Y = Value;
 
 void UControllerComponent::SetRollInput(float Value) { RotationInput.Z = Value; }
 
+void UControllerComponent::SetIsJumping(bool Toggle) { IsJumping = Toggle;}
+
 FVector UControllerComponent::GetRotationInput() const { return RotationInput; }
 
 FVector UControllerComponent::GetMovementInput() const { return MovementInput; }
+
+bool UControllerComponent::ConsumeIsJumping()
+{
+	bool temp = IsJumping;
+	IsJumping = false;
+	return temp;
+}
 

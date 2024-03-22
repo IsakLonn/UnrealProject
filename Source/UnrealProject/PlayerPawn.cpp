@@ -44,6 +44,8 @@ APlayerPawn::APlayerPawn()
 	CamControllerComponent = CreateDefaultSubobject<UCamControllerComponent>(TEXT("CamController"));
 	MoveComponent = CreateDefaultSubobject<UMoveComponent>(TEXT("MoveComponent"));
 	MoveComponent->UpdatedComponent = RootComponent;
+
+	MovementStateMachine = CreateDefaultSubobject<UActorMovementStateMachine>(TEXT("MovementStateMachine"));
 }
 
 // Called when the game starts or when spawned
@@ -73,35 +75,16 @@ void APlayerPawn::BeginPlay()
 	
 }
 
-void APlayerPawn::SetMovementInputLR(float Value)
+void APlayerPawn::OnMovementInput(FVector Input)
 {
-	
-	if (!bCanMove || !MoveComponent || (MoveComponent->UpdatedComponent != RootComponent)) return;
-	ControllerComponent->SetMovementInputY(Value);
+	MovementStateMachine->MovementInput(ControllerComponent, Input);
 }
 
-void APlayerPawn::SetMovementInputFB(float Value)
-{
-	if (!bCanMove || !MoveComponent || (MoveComponent->UpdatedComponent != RootComponent)) return;
-	ControllerComponent->SetMovementInputX(Value);
-}
-
-void APlayerPawn::SetMovementInputUD(float Value)
-{
-	if (!bCanMove || !MoveComponent || (MoveComponent->UpdatedComponent != RootComponent)) return;
-	ControllerComponent->SetMovementInputZ(Value);
-}
-
-void APlayerPawn::SetPitchInput(float Value)
+void APlayerPawn::OnRotationInput(FVector2D Input)
 {
 	if(ControllerComponent == nullptr) return;
-	ControllerComponent->SetPitchInput(Value);
-}
-
-void APlayerPawn::SetYawInput(float Value)
-{
-	if(ControllerComponent == nullptr) return;
-	ControllerComponent->SetYawInput(Value);
+	ControllerComponent->SetPitchInput(Input.X);
+	ControllerComponent->SetYawInput(Input.Y);
 }
 
 void APlayerPawn::ToggleMovement(bool Toggle)
@@ -116,7 +99,7 @@ void APlayerPawn::SetActorSpeed(float Speed)
 
 void APlayerPawn::Jump()
 {
-	MoveComponent->Jump();
+	MovementStateMachine->JumpInput(ControllerComponent);
 }
 
 void APlayerPawn::SetPerspective(Perspectives Perspective)

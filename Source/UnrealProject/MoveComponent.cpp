@@ -177,6 +177,10 @@ void UMoveComponent::FinalMove(float DeltaTime)
 {
 	//nullchecks
 	if(!PawnOwner || !UpdatedComponent || ShouldSkipUpdate(DeltaTime) || !Controller) return;
+
+	//check and add jump if player should be jumping
+	bool ShouldJump = Controller->ConsumeIsJumping();
+	if(bIsGrounded && ShouldJump && bUseGravity) GravitationalMovement += JumpStrength;
 	
 	//get input 
 	FVector Up = Controller->GetUpVector();
