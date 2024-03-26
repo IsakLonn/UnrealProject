@@ -18,10 +18,10 @@ void UMoveComponent::TickComponent(float DeltaTime, ELevelTick TickType, FActorC
 	CalculateVelocity();
 	
 	SimpleMove(DeltaTime);
-	if(bUseGravity && bIsGrounded) SnapActorToGround();
+	if(Settings.bUseGravity && Settings.bIsGrounded) SnapActorToGround();
 	FinalMove(DeltaTime);
 	
-	if(OrientWithMovement) RotateTowardsMovement(DeltaTime, 10);
+	if(Settings.OrientWithMovement) RotateTowardsMovement(DeltaTime, 10);
 	
 }
 
@@ -31,7 +31,7 @@ void UMoveComponent::RotateTowardsMovement(float DeltaTime, float RotationSpeed)
 	if (Orientation == nullptr || Controller == nullptr) return;
 	
 	//get data from controller
-	auto Input = Controller->GetMovementInput();
+	auto Input = Controller->ConsumeMovementInput();
 	auto Forward = Controller->GetForwardVector();
 	auto Right = Controller->GetRightVector();
 
@@ -40,7 +40,7 @@ void UMoveComponent::RotateTowardsMovement(float DeltaTime, float RotationSpeed)
 
 	//calculate rotation
 	
-	FVector Direction = (Forward * Input.X) + (Right * Input.Y);
+	FVector Direction = Velocity;
 	FVector ActorLocation = UpdatedComponent->GetComponentLocation();
 	FRotator Target = UKismetMathLibrary::FindLookAtRotation(ActorLocation, ActorLocation + Direction);
 	FRotator CalculatedRotation = FMath::RInterpTo(Orientation->GetComponentRotation(), Target, DeltaTime, RotationSpeed);
@@ -58,18 +58,18 @@ void UMoveComponent::CalculateVelocity()
 	FVector Forward = Controller->GetForwardVector();
 	FVector Right = Controller->GetRightVector();
 	FVector Up = Controller->GetUpVector();
-	FVector Input = Controller->GetMovementInput();
+	FVector Input = Controller->ConsumeMovementInput();
 
 	//Get desired movement
 	auto InputVelocity = ((Forward * Input.X) + (Right * Input.Y) + (Up * Input.Z));
 
-	Velocity = FMath::Lerp(Velocity, InputVelocity, Friction);
+	Velocity = FMath::Lerp(Velocity, InputVelocity, Settings.Friction);
 	Velocity = Velocity.GetClampedToSize(-1, 1);
 }
 
 void UMoveComponent::GroundCheck()
 {
-	bIsGrounded = false;
+	Settings.bIsGrounded = false;
 
 	//get/calculate values for sweep
 	
@@ -89,10 +89,10 @@ void UMoveComponent::GroundCheck()
 	if(GetWorld()->SweepSingleByChannel(*Hit, SweepLocation, SweepLocation, FQuat::Identity, ECC_WorldStatic, Shape, *TraceParams))
 	{
 		float Angle = AMath::Angle(Controller->GetUpVector(), Hit->Normal);
-		bool WithinRange = AMath::WithinRange(Angle, 0, MaxSlopeAngle);
+		bool WithinRange = AMath::WithinRange(Angle, 0, Settings.MaxSlopeAngle);
 		if(WithinRange)
 		{
-			bIsGrounded = true;
+			Settings.bIsGrounded = true;
 		}
 		
 	}
@@ -123,30 +123,30 @@ void UMoveComponent::SnapActorToGround()
 
 void UMoveComponent::CalculateGravity(float DeltaTime)
 {
-	if(!bUseGravity) GravitationalMovement = 0;
+	if(!Settings.bUseGravity) GravitationalMovement = 0;
 	else
 	{
-		if(bIsGrounded && GravitationalMovement <= 0) GravitationalMovement = 0;
-		else GravitationalMovement += Gravity * DeltaTime;
+		if(Settings.bIsGrounded && GravitationalMovement <= 0) GravitationalMovement = 0;
+		else GravitationalMovement += Settings.Gravity * DeltaTime;
 	}
 }
 
 void UMoveComponent::CalculateForce(float DeltaTime)
 {
-	Force = FMath::Lerp(Force, FVector::Zero(),ForceDissipationPerFrame * DeltaTime);
+	Force = FMath::Lerp(Force, FVector::Zero(),Settings.ForceDissipationPerFrame * DeltaTime);
 }
 
 void UMoveComponent::Jump()
 {
-	if(!bIsGrounded) return;
+	if(!Settings.bIsGrounded) return;
 
-	GravitationalMovement += JumpStrength;
+	GravitationalMovement += Settings.JumpStrength;
 }
 
 void UMoveComponent::AddForce(FVector Direction, float Strength)
 {
 	Force += Direction * Strength;
-	Force = UKismetMathLibrary::ClampVectorSize(Force, 0, MaxAppliedForce);
+	Force = UKismetMathLibrary::ClampVectorSize(Force, 0, Settings.MaxAppliedForce);
 }
 
 void UMoveComponent::SimpleMove(float DeltaTime)
@@ -155,15 +155,9 @@ void UMoveComponent::SimpleMove(float DeltaTime)
 	//nullchecks
 	if(!PawnOwner || !UpdatedComponent || ShouldSkipUpdate(DeltaTime) || !Controller) return;
 	
-	//get input and directional vectors
-	FVector Forward = Controller->GetForwardVector();
-	FVector Right = Controller->GetRightVector();
-	FVector Up = Controller->GetUpVector();
-	FVector Input = Velocity;
-	
 	//Calculate desired movement
 	//FVector DesiredMovementThisFrame = ((Forward * Input.X) + (Right * Input.Y) + (Up * Input.Z)) * ActorSpeed;
-	FVector DesiredMovementThisFrame = Velocity * ActorSpeed;
+	FVector DesiredMovementThisFrame = Velocity * Settings.ActorSpeed;
 	if(!DesiredMovementThisFrame.IsNearlyZero())
 	{
 		FHitResult Hit;
@@ -180,7 +174,7 @@ void UMoveComponent::FinalMove(float DeltaTime)
 
 	//check and add jump if player should be jumping
 	bool ShouldJump = Controller->ConsumeIsJumping();
-	if(bIsGrounded && ShouldJump && bUseGravity) GravitationalMovement += JumpStrength;
+	if(Settings.bIsGrounded && ShouldJump && Settings.bUseGravity) GravitationalMovement += Settings.JumpStrength;
 	
 	//get input 
 	FVector Up = Controller->GetUpVector();
@@ -230,10 +224,12 @@ void UMoveComponent::SetCollider(UCapsuleComponent* NewCollider)
 	Collider = NewCollider;
 }
 
-void UMoveComponent::SetActorSpeed(const float Speed) { ActorSpeed = Speed; }
+void UMoveComponent::SetActorSpeed(const float Speed) { Settings.ActorSpeed = Speed; }
 
-void UMoveComponent::ToggleGravity(const bool Toggle) { bUseGravity = Toggle;}
+void UMoveComponent::ToggleGravity(const bool Toggle) { Settings.bUseGravity = Toggle;}
 
-void UMoveComponent::SetOrientWithMovement(const bool Toggle) { OrientWithMovement = Toggle; }
+void UMoveComponent::SetOrientWithMovement(const bool Toggle) { Settings.OrientWithMovement = Toggle; }
 
-void UMoveComponent::SetGravity(const float NewGravity){ Gravity = NewGravity; }
+void UMoveComponent::SetGravity(const float NewGravity){ Settings.Gravity = NewGravity; }
+
+FMoveSettings* UMoveComponent::GetSettings() { return &Settings; }

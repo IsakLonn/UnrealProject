@@ -45,7 +45,7 @@ APlayerPawn::APlayerPawn()
 	MoveComponent = CreateDefaultSubobject<UMoveComponent>(TEXT("MoveComponent"));
 	MoveComponent->UpdatedComponent = RootComponent;
 
-	MovementStateMachine = CreateDefaultSubobject<UActorMovementStateMachine>(TEXT("MovementStateMachine"));
+	MovementStateMachine = CreateDefaultSubobject<UMovementStateMachine>(TEXT("MovementStateMachine"));
 }
 
 // Called when the game starts or when spawned
@@ -54,6 +54,7 @@ void APlayerPawn::BeginPlay()
 	
 	Super::BeginPlay();
 
+	MoveComponent->GetSettings()->bUseGravity = true;
 	//create controller object
 	if(ControllerComponent == nullptr)
 	{
@@ -77,7 +78,7 @@ void APlayerPawn::BeginPlay()
 
 void APlayerPawn::OnMovementInput(FVector Input)
 {
-	MovementStateMachine->MovementInput(ControllerComponent, Input);
+	MovementStateMachine->MovementInput(Input);
 }
 
 void APlayerPawn::OnRotationInput(FVector2D Input)
@@ -99,7 +100,7 @@ void APlayerPawn::SetActorSpeed(float Speed)
 
 void APlayerPawn::Jump()
 {
-	MovementStateMachine->JumpInput(ControllerComponent);
+	MovementStateMachine->JumpInput();
 }
 
 void APlayerPawn::SetPerspective(Perspectives Perspective)

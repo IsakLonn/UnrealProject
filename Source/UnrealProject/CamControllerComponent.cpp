@@ -59,7 +59,7 @@ void UCamControllerComponent::TryRotateComponents()
 	if (ComponentRotatedLR == nullptr || ComponentRotatedUD == nullptr || Controller == nullptr) return;
 
 	//get current rotations and inputs
-	const auto RotationInput = Controller->GetRotationInput();
+	const auto RotationInput = Controller->ConsumeRotationInput();
 	auto UDRot = ComponentRotatedUD->GetRelativeRotation();
 	auto LRRot = ComponentRotatedLR->GetRelativeRotation();
 

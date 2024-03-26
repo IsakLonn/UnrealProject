@@ -5,12 +5,13 @@
 #include "CoreMinimal.h"
 #include "Components/SceneComponent.h"
 #include "ControllerComponent.h"
+#include "PlayerComponentBase.h"
 #include "CamControllerComponent.generated.h"
 
 
 
-UCLASS( ClassGroup=(Custom), meta=(BlueprintSpawnableComponent, ToolTip = "component for rotating a camera, be sure to set its variables by calling its Set function/s") )
-class UNREALPROJECT_API UCamControllerComponent : public USceneComponent
+UCLASS()
+class UNREALPROJECT_API UCamControllerComponent : public UPlayerComponentBase
 {
 	GENERATED_BODY()
 

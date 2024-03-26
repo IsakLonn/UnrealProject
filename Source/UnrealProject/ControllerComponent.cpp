@@ -39,9 +39,19 @@ void UControllerComponent::SetRollInput(float Value) { RotationInput.Z = Value; 
 
 void UControllerComponent::SetIsJumping(bool Toggle) { IsJumping = Toggle;}
 
-FVector UControllerComponent::GetRotationInput() const { return RotationInput; }
+FVector UControllerComponent::ConsumeRotationInput()
+{
+	auto temp = RotationInput;
+	RotationInput = {0,0,0};
+	return temp;
+}
 
-FVector UControllerComponent::GetMovementInput() const { return MovementInput; }
+FVector UControllerComponent::ConsumeMovementInput()
+{
+	auto temp = MovementInput;
+	MovementInput = FVector::Zero();
+	return temp;
+}
 
 bool UControllerComponent::ConsumeIsJumping()
 {

@@ -3,12 +3,13 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "PlayerComponentBase.h"
 #include "Components/ActorComponent.h"
 #include "ControllerComponent.generated.h"
 
 //Custom Controller that keeps a vector and rotation value for pawn controlling
 UCLASS( ClassGroup=(Custom), meta=(BlueprintSpawnableComponent) )
-class UNREALPROJECT_API UControllerComponent : public UActorComponent
+class UNREALPROJECT_API UControllerComponent : public UPlayerComponentBase
 {
 	
 	GENERATED_BODY()
@@ -36,8 +37,8 @@ public:
 
 	void SetIsJumping(bool Toggle);
 
-	FVector GetRotationInput() const;
-	FVector GetMovementInput() const;
+	FVector ConsumeRotationInput();
+	FVector ConsumeMovementInput();
 	bool ConsumeIsJumping();
 	
 protected:

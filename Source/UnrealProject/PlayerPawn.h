@@ -3,7 +3,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "ActorMovementStateMachine.h"
+#include "MovementStateMachine.h"
 #include "GameFramework/Pawn.h"
 #include "Components/CapsuleComponent.h"
 #include "Components/SkeletalMeshComponent.h"
@@ -63,7 +63,7 @@ protected:
 	UMoveComponent* MoveComponent;
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
-	UActorMovementStateMachine* MovementStateMachine;
+	UMovementStateMachine* MovementStateMachine;
 
 	UPROPERTY(Instanced, EditDefaultsOnly)
 	UCamControllerComponent* CamControllerComponent;
