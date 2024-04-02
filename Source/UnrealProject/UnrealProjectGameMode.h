@@ -16,12 +16,12 @@ class UNREALPROJECT_API AUnrealProjectGameMode : public AGameModeBase
 	GENERATED_BODY()
 
 public:
-	void InitGameState() override;
+	virtual void InitGameState() override;
 
 protected:
 
 
 	UPROPERTY(EditAnywhere, NoClear)
-	TSubclassOf<APlayerPawn> CustomPawnClass = APlayerPawn::StaticClass();
+	TSubclassOf<APlayerPawn> CustomPawnClass;
 	
 };

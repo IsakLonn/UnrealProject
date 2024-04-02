@@ -3,13 +3,13 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "MovementStateMachine.h"
 #include "GameFramework/Pawn.h"
 #include "Components/CapsuleComponent.h"
 #include "Components/SkeletalMeshComponent.h"
 #include "MoveComponent.h"
 #include "CamControllerComponent.h"
 #include "ControllerComponent.h"
+#include "../Plugins/StateMachine/Source/StateMachine/Public/StateManagerComponent.h"
 #include "PlayerPawn.generated.h"
 
 UENUM(BlueprintType)
@@ -18,6 +18,10 @@ enum Perspectives
   FPS     UMETA(DisplayName = "First person"),
   TPS      UMETA(DisplayName = "Third person"),
 };
+
+DECLARE_MULTICAST_DELEGATE(EmptyDelegate)
+DECLARE_MULTICAST_DELEGATE_OneParam(VectorDelegate, FVector);
+
 UCLASS()
 class UNREALPROJECT_API APlayerPawn : public APawn
 {
@@ -34,6 +38,13 @@ public:
 	// Called to bind functionality to input
 	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
 
+	UControllerComponent* GetController();
+	UStateManagerComponent* GetStateManager();
+	UMoveComponent* GetMovement();
+
+	EmptyDelegate JumpDelegate;
+	VectorDelegate MovementInputDelegate;
+	
 protected:
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
@@ -62,14 +73,14 @@ protected:
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
 	UMoveComponent* MoveComponent;
 
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
-	UMovementStateMachine* MovementStateMachine;
-
 	UPROPERTY(Instanced, EditDefaultsOnly)
 	UCamControllerComponent* CamControllerComponent;
 
 	UPROPERTY()
 	UControllerComponent* ControllerComponent;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	UStateManagerComponent* StateManager;
 
 	//call this function when wanting to set movement
 	UFUNCTION(BlueprintCallable)
@@ -101,5 +112,7 @@ protected:
 
 	UPROPERTY(BlueprintReadOnly)
 	TEnumAsByte<Perspectives> currentPerspective;
+
+	
 
 };

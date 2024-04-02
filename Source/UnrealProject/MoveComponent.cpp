@@ -4,6 +4,7 @@
 #include "MoveComponent.h"
 #include "ControllerComponent.h"
 #include "Math.h"
+#include "PlayerPawn.h"
 #include "Components/CapsuleComponent.h"
 #include "Kismet/KismetMathLibrary.h"
 
@@ -136,11 +137,9 @@ void UMoveComponent::CalculateForce(float DeltaTime)
 	Force = FMath::Lerp(Force, FVector::Zero(),Settings.ForceDissipationPerFrame * DeltaTime);
 }
 
-void UMoveComponent::Jump()
+APlayerPawn* UMoveComponent::GetPlayer() const
 {
-	if(!Settings.bIsGrounded) return;
-
-	GravitationalMovement += Settings.JumpStrength;
+	return Cast<APlayerPawn>(GetOwner());
 }
 
 void UMoveComponent::AddForce(FVector Direction, float Strength)
@@ -156,8 +155,8 @@ void UMoveComponent::SimpleMove(float DeltaTime)
 	if(!PawnOwner || !UpdatedComponent || ShouldSkipUpdate(DeltaTime) || !Controller) return;
 	
 	//Calculate desired movement
-	//FVector DesiredMovementThisFrame = ((Forward * Input.X) + (Right * Input.Y) + (Up * Input.Z)) * ActorSpeed;
 	FVector DesiredMovementThisFrame = Velocity * Settings.ActorSpeed;
+	
 	if(!DesiredMovementThisFrame.IsNearlyZero())
 	{
 		FHitResult Hit;
@@ -171,13 +170,18 @@ void UMoveComponent::FinalMove(float DeltaTime)
 {
 	//nullchecks
 	if(!PawnOwner || !UpdatedComponent || ShouldSkipUpdate(DeltaTime) || !Controller) return;
-
-	//check and add jump if player should be jumping
-	bool ShouldJump = Controller->ConsumeIsJumping();
-	if(Settings.bIsGrounded && ShouldJump && Settings.bUseGravity) GravitationalMovement += Settings.JumpStrength;
 	
-	//get input 
 	FVector Up = Controller->GetUpVector();
+	
+	//check if jumping this frame
+	if(Controller->ConsumeIsJumping())
+	{
+		GravitationalMovement = Settings.ResetCurrentGravityOnJump ? 0 : GravitationalMovement;
+		AddForce(Up, Settings.JumpStrength);
+	}
+		//GravitationalMovement += Settings.JumpStrength;
+	
+	
 	
 	//Calculate desired movement
 	FVector DesiredMovementThisFrame = Up * GravitationalMovement;

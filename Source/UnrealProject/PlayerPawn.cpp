@@ -12,6 +12,8 @@ APlayerPawn::APlayerPawn()
  	// Set this pawn to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
 	PrimaryActorTick.bCanEverTick = true;
 
+	StateManager = CreateDefaultSubobject<UStateManagerComponent>(TEXT("State Manager"));
+
 	//create root component
 	Collider = CreateDefaultSubobject<UCapsuleComponent>(TEXT("CapsuleCollider"));
 	RootComponent = Collider;
@@ -44,8 +46,6 @@ APlayerPawn::APlayerPawn()
 	CamControllerComponent = CreateDefaultSubobject<UCamControllerComponent>(TEXT("CamController"));
 	MoveComponent = CreateDefaultSubobject<UMoveComponent>(TEXT("MoveComponent"));
 	MoveComponent->UpdatedComponent = RootComponent;
-
-	MovementStateMachine = CreateDefaultSubobject<UMovementStateMachine>(TEXT("MovementStateMachine"));
 }
 
 // Called when the game starts or when spawned
@@ -54,7 +54,8 @@ void APlayerPawn::BeginPlay()
 	
 	Super::BeginPlay();
 
-	MoveComponent->GetSettings()->bUseGravity = true;
+	StateManager->InitStateManager();
+
 	//create controller object
 	if(ControllerComponent == nullptr)
 	{
@@ -78,7 +79,7 @@ void APlayerPawn::BeginPlay()
 
 void APlayerPawn::OnMovementInput(FVector Input)
 {
-	MovementStateMachine->MovementInput(Input);
+	MovementInputDelegate.Broadcast(Input);
 }
 
 void APlayerPawn::OnRotationInput(FVector2D Input)
@@ -100,7 +101,7 @@ void APlayerPawn::SetActorSpeed(float Speed)
 
 void APlayerPawn::Jump()
 {
-	MovementStateMachine->JumpInput();
+	JumpDelegate.Broadcast();
 }
 
 void APlayerPawn::SetPerspective(Perspectives Perspective)
@@ -140,5 +141,20 @@ void APlayerPawn::SetupPlayerInputComponent(UInputComponent* PlayerInputComponen
 	
 	Super::SetupPlayerInputComponent(PlayerInputComponent);
 
+}
+
+UControllerComponent* APlayerPawn::GetController()
+{
+	return ControllerComponent;
+}
+
+UStateManagerComponent* APlayerPawn::GetStateManager()
+{
+	return StateManager;
+}
+
+UMoveComponent* APlayerPawn::GetMovement()
+{
+	return MoveComponent;
 }
 

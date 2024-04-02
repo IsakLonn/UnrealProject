@@ -15,30 +15,32 @@ struct FMoveSettings
 	GENERATED_BODY()
 
 	UPROPERTY(EditAnywhere)
-	float ActorSpeed;
+	float ActorSpeed = 10;
 	UPROPERTY(EditAnywhere)
-	float JumpStrength;
+	float JumpStrength = 10;
 	UPROPERTY(EditAnywhere, meta=(ClampMin="0", ClampMax="1"))
-	float Friction;
+	float Friction = 1;
 
 	UPROPERTY(EditAnywhere)
-	bool bUseGravity;
+	bool bUseGravity = true;
 	UPROPERTY(EditAnywhere, meta=(ClampMin="-90", ClampMax="0"))
-	float Gravity;
+	float Gravity = -9;
 
 	UPROPERTY(EditAnywhere, meta=(ClampMin="0", ClampMax="90"))
-	float MaxSlopeAngle;
+	float MaxSlopeAngle = 45;
 	
 	UPROPERTY(EditAnywhere)
 	bool OrientWithMovement = true;
 	
 	UPROPERTY(EditAnywhere)
 	bool DebugGroundRayCast = true;
+	UPROPERTY(EditAnywhere)
+	bool ResetCurrentGravityOnJump = true;
 
 	UPROPERTY(EditAnywhere, meta=(ClampMin="0", ClampMax="100"))
-	float ForceDissipationPerFrame;
+	float ForceDissipationPerFrame = 20;
 	UPROPERTY(EditAnywhere, meta=(ClampMin="0", ClampMax="100"))
-	float MaxAppliedForce;
+	float MaxAppliedForce = 50;
 
 	bool bIsGrounded;
 };

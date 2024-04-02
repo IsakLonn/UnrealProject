@@ -8,6 +8,7 @@
 #include "GameFramework/PawnMovementComponent.h"
 #include "MoveComponent.generated.h"
 
+class APlayerPawn;
 /**
  * 
  */
@@ -35,9 +36,6 @@ public:
 
 	FMoveSettings* GetSettings();
 
-	//makes actor jump
-	void Jump();
-
 	//adds force to the pawn
 	UFUNCTION(BlueprintCallable)
 	void AddForce(FVector Direction, float Strength);
@@ -53,8 +51,6 @@ protected:
 	//Reference to Collider
 	UPROPERTY()
 	UCapsuleComponent* Collider;
-	
-	//bool bIsGrounded;
 	
 	float GravitationalMovement;
 
@@ -84,33 +80,8 @@ protected:
 
 	//calculate and remove force
 	void CalculateForce(float DeltaTime);
-	
-	// UPROPERTY(EditAnywhere, Category = "Movement settings")
-	// float ActorSpeed;
-	// UPROPERTY(EditAnywhere, Category = "Movement settings")
-	// float JumpStrength;
-	// UPROPERTY(EditAnywhere, meta=(ClampMin="0", ClampMax="1"), Category = "Movement settings")
-	// float Friction;
-	//
-	// UPROPERTY(EditAnywhere, Category = "Gravity settings")
-	// bool bUseGravity;
-	// UPROPERTY(EditAnywhere, meta=(ClampMin="0", ClampMax="-90"), Category = "Gravity settings")
-	// float Gravity;
-	//
-	// UPROPERTY(EditAnywhere, meta=(ClampMin="0", ClampMax="90"), Category = "Slope settings")
-	// float MaxSlopeAngle;
-	//
-	// UPROPERTY(EditAnywhere, Category = "Visual settings")
-	// bool OrientWithMovement = true;
-	//
-	// UPROPERTY(EditAnywhere, Category = "Debug settings")
-	// bool DebugGroundRayCast = true;
-	//
-	// UPROPERTY(EditAnywhere, meta=(ClampMin="0", ClampMax="100"), Category = "Force settings")
-	// float ForceDissipationPerFrame;
-	//
-	// UPROPERTY(EditAnywhere, meta=(ClampMin="0", ClampMax="100"), Category = "Force settings")
-	// float MaxAppliedForce;
+
+	APlayerPawn* GetPlayer() const;
 	
 	UPROPERTY(EditAnywhere, Category = "Movement settings")
 	FMoveSettings Settings;
