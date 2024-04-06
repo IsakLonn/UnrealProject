@@ -4,18 +4,17 @@
 
 #include "CoreMinimal.h"
 #include "GameFramework/Info.h"
-#include "Math.generated.h"
+#include "ControllablePawnMath.generated.h"
 
 /**
  * 
  */
 UCLASS()
-class UNREALPROJECT_API AMath : public AInfo
+class CONTROLLABEPAWN_API AControllablePawnMath : public AInfo
 {
 	GENERATED_BODY()
 
 public:
 	static float Angle(FVector V1, FVector V2);
 	static bool WithinRange(float value, float min, float max);
-	
 };

@@ -3,7 +3,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "PlayerPawn.h"
+#include "ControllablePawnBase.h"
 #include "StateBase.h"
 #include "PlayerBaseState.generated.h"
 
@@ -21,7 +21,7 @@ public:
 
 protected:
 	UPROPERTY()
-	APlayerPawn* PlayerRef;
+	AControllablePawnBase* PlayerRef;
 
 	UPROPERTY(EditAnywhere)
 	FMoveSettings MovementStateSettings;

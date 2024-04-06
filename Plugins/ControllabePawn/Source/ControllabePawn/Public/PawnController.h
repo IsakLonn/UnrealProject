@@ -3,25 +3,20 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "PlayerComponentBase.h"
 #include "Components/ActorComponent.h"
-#include "ControllerComponent.generated.h"
+#include "PawnController.generated.h"
 
-//Custom Controller that keeps a vector and rotation value for pawn controlling
+
 UCLASS( ClassGroup=(Custom), meta=(BlueprintSpawnableComponent) )
-class UNREALPROJECT_API UControllerComponent : public UPlayerComponentBase
+class CONTROLLABEPAWN_API UPawnController : public UActorComponent
 {
-	
 	GENERATED_BODY()
 
-public:
-	
-	// Sets default values for this component's properties
-	UControllerComponent();
+public:	
 
-	void SetUpVector(FVector _Up);
-	void SetForwardVector(FVector _Forward);
-	void SetRightVector(FVector _Right);
+	void SetUpComponentReference(USceneComponent* Component);
+	void SetForwardComponentReference(USceneComponent* Component);
+	void SetRightComponentReference(USceneComponent* Component);
 
 	FVector GetForwardVector() const;
 	FVector GetRightVector() const;
@@ -30,25 +25,29 @@ public:
 	void SetMovementInputX(float Value);
 	void SetMovementInputY(float Value);
 	void SetMovementInputZ(float Value);
+	void SetMovementInput(FVector Input);
 	
 	void SetYawInput(float Value);
 	void SetPitchInput(float Value);
-	void SetRollInput(float Value);
+	void SetRotationInput(FVector2D Input);
+	
+	void SetIsJumping();
 
-	void SetIsJumping(bool Toggle);
-
-	FVector ConsumeRotationInput();
+	FVector2D ConsumeRotationInput();
 	FVector ConsumeMovementInput();
 	bool ConsumeIsJumping();
 	
+
 protected:
 	
-	FVector RotationInput;
+	FVector2D RotationInput;
 	FVector MovementInput;
-	FVector Forward;
-	FVector Right;
-	FVector Up;
+	UPROPERTY()
+	USceneComponent* ForwardComponent;
+	UPROPERTY()
+	USceneComponent* RightComponent;
+	UPROPERTY()
+	USceneComponent* UpComponent;
 
 	bool IsJumping;
-	
 };

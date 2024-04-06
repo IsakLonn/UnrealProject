@@ -3,17 +3,19 @@
 
 #include "PlayerBaseState.h"
 
+#include "ControllablePawnBase.h"
+
 void UPlayerBaseState::OnEnterState(AActor* StateOwner)
 {
 	Super::OnEnterState(StateOwner);
 	
-	PlayerRef = Cast<APlayerPawn>(StateOwner);
+	PlayerRef = Cast<AControllablePawnBase>(StateOwner);
 	
 	if(PlayerRef)
 	{
-		PlayerRef->JumpDelegate.AddUObject(this, &UPlayerBaseState::OnJumpInput);
-		PlayerRef->MovementInputDelegate.AddUObject(this, &UPlayerBaseState::OnMovementInput);
-		*PlayerRef->GetMovement()->GetSettings() = MovementStateSettings;
+		// PlayerRef->JumpDelegate.AddUObject(this, &UPlayerBaseState::OnJumpInput);
+		// PlayerRef->MovementInputDelegate.AddUObject(this, &UPlayerBaseState::OnMovementInput);
+		// *PlayerRef->GetMovement()->GetSettings() = MovementStateSettings;
 	}
 }
 
@@ -24,8 +26,8 @@ void UPlayerBaseState::OnExitState()
 	
 	if(PlayerRef)
 	{
-		PlayerRef->JumpDelegate.RemoveAll(this);
-		PlayerRef->MovementInputDelegate.RemoveAll(this);
+		// PlayerRef->JumpDelegate.RemoveAll(this);
+		// PlayerRef->MovementInputDelegate.RemoveAll(this);
 	}
 }
 

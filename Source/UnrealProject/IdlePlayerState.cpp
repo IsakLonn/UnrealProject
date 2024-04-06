@@ -5,12 +5,12 @@
 
 void UIdlePlayerState::OnJumpInput()
 {
-	PlayerRef->GetController()->SetIsJumping(true);
-	PlayerRef->GetStateManager()->SwitchStateByKey("Jump");
+	//PlayerRef->GetController()->SetIsJumping(true);
+	//PlayerRef->GetStateManager()->SwitchStateByKey("Jump");
 }
 
 void UIdlePlayerState::OnMovementInput(FVector Input)
 {
-	PlayerRef->GetController()->SetMovementInputX(Input.X);
-	PlayerRef->GetController()->SetMovementInputY(Input.Y);
+	//PlayerRef->GetController()->SetMovementInputX(Input.X);
+	//PlayerRef->GetController()->SetMovementInputY(Input.Y);
 }

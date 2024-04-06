@@ -4,11 +4,8 @@
 
 #include "CoreMinimal.h"
 #include "Engine/UserDefinedStruct.h"
-#include "Structs.generated.h"
+#include "ControllablePawnStructs.generated.h"
 
-/**
- * 
- */
 USTRUCT()
 struct FMoveSettings
 {
@@ -43,10 +40,11 @@ struct FMoveSettings
 	float MaxAppliedForce = 50;
 
 	bool bIsGrounded;
+	
 };
 
 UCLASS()
-class UNREALPROJECT_API UStructs : public UUserDefinedStruct
+class CONTROLLABEPAWN_API UControllablePawnStructs : public UUserDefinedStruct
 {
 	GENERATED_BODY()
 	

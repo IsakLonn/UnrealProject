@@ -6,7 +6,7 @@
 void UJumpPlayerState::OnJumpInput()
 {
 	Super::OnJumpInput();
-	PlayerRef->GetController()->SetIsJumping(true);
+	//PlayerRef->GetController()->SetIsJumping(true);
 }
 
 void UJumpPlayerState::OnMovementInput(FVector Input)
@@ -17,7 +17,7 @@ void UJumpPlayerState::OnMovementInput(FVector Input)
 void UJumpPlayerState::TickState()
 {
 	Super::TickState();
-	if(PlayerRef->GetMovement()->GetSettings()->bIsGrounded) PlayerRef->GetStateManager()->SwitchStateByKey("Idle");
+	//if(PlayerRef->GetMovement()->GetSettings()->bIsGrounded) PlayerRef->GetStateManager()->SwitchStateByKey("Idle");
 }
 
 

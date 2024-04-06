@@ -3,37 +3,20 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "ControllerComponent.h"
-#include "Structs.h"
+#include "ControllablePawnStructs.h"
+#include "PawnController.h"
 #include "GameFramework/PawnMovementComponent.h"
-#include "MoveComponent.generated.h"
+#include "ControllablePawnMovement.generated.h"
 
-class APlayerPawn;
-/**
- * 
- */
 UCLASS()
-//Custom move component for moving an actor with a Capsule collider root. Make sure to set its updated component correctly
-class UNREALPROJECT_API UMoveComponent : public UPawnMovementComponent
+class CONTROLLABEPAWN_API UControllablePawnMovement : public UPawnMovementComponent
 {
 	GENERATED_BODY()
 
 public:
 	virtual void TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction) override;
-
-	//setters for references
+	virtual void BeginPlay() override;
 	
-	void SetOrientation(USceneComponent* NewOrientation);
-	void SetController(UControllerComponent* NewController);
-	void SetCollider(UCapsuleComponent* NewCollider);
-	
-	//setters for component variables
-	
-	void SetActorSpeed(float Speed);
-	void ToggleGravity(const bool Toggle);
-	void SetOrientWithMovement(const bool Toggle);
-	void SetGravity(const float NewGravity);
-
 	FMoveSettings* GetSettings();
 
 	//adds force to the pawn
@@ -42,18 +25,6 @@ public:
 	
 protected:
 	
-	//Reference to object that "looks" in move direction
-	UPROPERTY()
-	USceneComponent* Orientation;
-	//Reference to Controller with information such as movement input
-	UPROPERTY()
-	UControllerComponent* Controller;
-	//Reference to Collider
-	UPROPERTY()
-	UCapsuleComponent* Collider;
-	
-	float GravitationalMovement;
-
 	//tries to move actor according to input from controller
 	void SimpleMove(float DeltaTime);
 
@@ -62,10 +33,7 @@ protected:
 	// gravitational
 	//force
 	void FinalMove(float DeltaTime);
-
-	//orients visuals to face towards movement, without the Z value
-	void RotateTowardsMovement(float DeltaTime, float RotationSpeed) const;
-
+	
 	//calculates velocity this frame
 	void CalculateVelocity();
 	
@@ -81,14 +49,13 @@ protected:
 	//calculate and remove force
 	void CalculateForce(float DeltaTime);
 
-	APlayerPawn* GetPlayer() const;
+	UPawnController* GetOwnerController() const;
 	
 	UPROPERTY(EditAnywhere, Category = "Movement settings")
 	FMoveSettings Settings;
 	
-	//current force applied to the pawn
 	FVector Force;
 	FVector Velocity;
-
+	float GravitationalMovement;
 	
 };

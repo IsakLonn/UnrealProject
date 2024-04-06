@@ -3,25 +3,21 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "PlayerPawn.h"
 #include "GameFramework/GameModeBase.h"
-#include "UnrealProjectGameMode.generated.h"
+#include "ControllablePawnGameMode.generated.h"
 
 /**
  * 
  */
 UCLASS()
-class UNREALPROJECT_API AUnrealProjectGameMode : public AGameModeBase
+class CONTROLLABEPAWN_API AControllablePawnGameMode : public AGameModeBase
 {
 	GENERATED_BODY()
-
+	
 public:
 	virtual void InitGameState() override;
 
 protected:
-
-
 	UPROPERTY(EditAnywhere, NoClear)
-	TSubclassOf<APlayerPawn> CustomPawnClass;
-	
+	TSubclassOf<AControllablePawnBase> CustomPawnClass;
 };

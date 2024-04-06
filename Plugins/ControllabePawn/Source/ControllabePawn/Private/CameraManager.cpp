@@ -3,13 +3,12 @@
 
 #include "CameraManager.h"
 
-#include "MovieSceneSequenceID.h"
 #include "Kismet/GameplayStatics.h"
 
 // Sets default values
 ACameraManager::ACameraManager()
 {
- 	// Set this actor to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
+	// Set this actor to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
 	PrimaryActorTick.bCanEverTick = true;
 	
 	root = CreateDefaultSubobject<USceneComponent>("Root");
@@ -21,30 +20,6 @@ ACameraManager::ACameraManager()
 	Camera = CreateDefaultSubobject<UCameraComponent>("Camera");
 	Camera->SetupAttachment(CameraBoom);
 
-	auto world = GetWorld();
-	if(world == nullptr)
-	{
-		UE_LOG(LogTemp, Warning, TEXT("Error getting world when setting up CameraManager"));
-	}
-    else
-    {
-    	auto playerController = UGameplayStatics::GetPlayerController(GetWorld(), 0);
-
-    	if(playerController != nullptr)playerController->SetViewTarget(this);
-    }
-	
-}
-
-// Called when the game starts or when spawned
-void ACameraManager::BeginPlay()
-{
-	Super::BeginPlay();
-}
-
-// Called every frame
-void ACameraManager::Tick(float DeltaTime)
-{
-	Super::Tick(DeltaTime);
 }
 
 void ACameraManager::AttachToComponent(USceneComponent* Target, float TargetArmLength, bool SnapToTarget) const
@@ -82,5 +57,23 @@ void ACameraManager::SetFOV(float FOV) const
 	Camera->SetFieldOfView(FOV);
 }
 
+void ACameraManager::Initiate()
+{
+	const auto world = GetWorld();
+	if(world == nullptr)
+	{
+		UE_LOG(LogTemp, Warning, TEXT("Error getting world when setting up CameraManager"));
+	}
+	else
+	{
+		const auto playerController = UGameplayStatics::GetPlayerController(GetWorld(), 0);
 
+		if(playerController != nullptr)playerController->SetViewTarget(this);
+	}
+}
+
+USpringArmComponent* ACameraManager::GetCameraBoom() const
+{
+	return CameraBoom;
+}
 

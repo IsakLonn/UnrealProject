@@ -9,30 +9,13 @@
 #include "CameraManager.generated.h"
 
 UCLASS()
-class UNREALPROJECT_API ACameraManager : public AActor
+class CONTROLLABEPAWN_API ACameraManager : public AActor
 {
 	GENERATED_BODY()
 	
 public:	
 	// Sets default values for this actor's properties
 	ACameraManager();
-
-protected:
-	// Called when the game starts or when spawned
-	virtual void BeginPlay() override;
-
-	USceneComponent* root;
-	
-	UPROPERTY(EditAnywhere)
-	UCameraComponent* Camera;
-
-	UPROPERTY(EditAnywhere)
-	USpringArmComponent* CameraBoom;
-
-public:
-
-	// Called every frame
-	virtual void Tick(float DeltaTime) override;
 
 	//attaches the camera to a new target
 	//FollowDistance sets the target arm length for the spring arm
@@ -48,5 +31,17 @@ public:
 
 	void SetFOV(float FOV) const;
 
+	void Initiate();
+
+	USpringArmComponent* GetCameraBoom() const;
+protected:
+
+	UPROPERTY(EditAnywhere)
+	USceneComponent* root;
 	
+	UPROPERTY(EditAnywhere)
+	UCameraComponent* Camera;
+
+	UPROPERTY(EditAnywhere)
+	USpringArmComponent* CameraBoom;
 };

@@ -1,9 +1,9 @@
 // Fill out your copyright notice in the Description page of Project Settings.
 
 
-#include "Math.h"
+#include "ControllablePawnMath.h"
 
-float AMath::Angle(FVector V1, FVector V2)
+float AControllablePawnMath::Angle(FVector V1, FVector V2)
 {
 	// Normalize the vectors
 	V1.Normalize();
@@ -19,7 +19,7 @@ float AMath::Angle(FVector V1, FVector V2)
 	return FMath::RadiansToDegrees(AngleInRadians);
 }
 
-bool AMath::WithinRange(float value, float min, float max)
+bool AControllablePawnMath::WithinRange(float value, float min, float max)
 {
 	return value >= min && value <= max;
 }
