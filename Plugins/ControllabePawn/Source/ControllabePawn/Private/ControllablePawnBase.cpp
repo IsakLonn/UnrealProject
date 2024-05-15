@@ -3,8 +3,9 @@
 
 #include "ControllablePawnBase.h"
 
-#include "ControllablePawnGameInstance.h"
+#include "CustomGameInstanceBase.h"
 #include "Components/CapsuleComponent.h"
+#include "Kismet/KismetMathLibrary.h"
 
 // Sets default values
 AControllablePawnBase::AControllablePawnBase()
@@ -19,7 +20,7 @@ AControllablePawnBase::AControllablePawnBase()
 	//create movement component
 	PawnMovement = CreateDefaultSubobject<UControllablePawnMovement>(TEXT("PawnMovement"));
 
-	//create object rotated
+	//create mesh parent, used for "rotating pawn"
 	OrientationParent = CreateDefaultSubobject<USceneComponent>(TEXT("OrientationParent"));
 	OrientationParent->SetupAttachment(RootComponent);
 
@@ -30,24 +31,30 @@ AControllablePawnBase::AControllablePawnBase()
 	PawnMesh = CreateDefaultSubobject<USkeletalMeshComponent>(TEXT("PawnMesh"));
 	PawnMesh->SetupAttachment(OrientationParent);
 
-	//create skeleton mesh
+	//create first person cam target
 	FPSCamTarget = CreateDefaultSubobject<USceneComponent>(TEXT("FPSCamTarget"));
 	FPSCamTarget->SetupAttachment(OrientationParent);
 
-	//create skeleton mesh
+	//create third person cam target
 	TPSCamTarget = CreateDefaultSubobject<USceneComponent>(TEXT("TPSCamTarget"));
 	TPSCamTarget->SetupAttachment(Collider);
 
+}
+
+void AControllablePawnBase::TickActor(float DeltaTime, ELevelTick TickType, FActorTickFunction& ThisTickFunction)
+{
+	Super::TickActor(DeltaTime, TickType, ThisTickFunction);
+
+	CalculateControllerDirectionVectors();
+	if(CurrentPerspective != FPS)RotateTowardsMovement(DeltaTime, 1);
 }
 
 // Called when the game starts or when spawned
 void AControllablePawnBase::BeginPlay()
 {
 	Super::BeginPlay();
-	
-	
-	
-	SetPerspective(TPS);
+
+	//SetPerspective(SCW);
 	
 }
 
@@ -65,6 +72,7 @@ void AControllablePawnBase::OnToggleSprint(bool toggle)
 
 void AControllablePawnBase::OnRotationInput(FVector2D Input)
 {
+	if(!bAllowRotation) return;
 	PawnController->SetRotationInput(Input);
 
 	auto UDRot = CamRotUDTarget->GetRelativeRotation();
@@ -80,52 +88,106 @@ void AControllablePawnBase::OnRotationInput(FVector2D Input)
 	CamRotUDTarget->SetRelativeRotation(UDRot);
 }
 
-void AControllablePawnBase::OnMovementInput(FVector Input) { PawnController->SetMovementInput(Input); }
+void AControllablePawnBase::OnMovementInput(FVector Input)
+{
+	PawnController->SetMovementInput(Input);
+}
 
 void AControllablePawnBase::SetPerspective(Perspectives NewPerspective)
 {
-	const auto CamManager = Cast<UControllablePawnGameInstance>(GetWorld()->GetGameInstance())->GetCameraManager();
-	switch (NewPerspective)
+	//allow rotations by default when changing perspective
+	bAllowRotation = true;
+	
+	CurrentPerspective = NewPerspective;
+	
+	const auto CamManager = Cast<UCustomGameInstanceBase>(GetWorld()->GetGameInstance())->GetCameraManager();
+	
+	switch (CurrentPerspective)
 	{
 	case FPS:
-		CamManager->AttachToComponent(FPSCamTarget, 0);
+		CamManager->AttachToComponent(FPSCamTarget);
 		CamRotLRTarget = OrientationParent;
 		CamRotUDTarget = FPSCamTarget;
 		break;
 
 	case TPS:
-		CamManager->AttachToComponent(TPSCamTarget, 100);
+		CamManager->AttachToComponent(TPSCamTarget);
 		CamRotLRTarget = TPSCamTarget;
 		CamRotUDTarget = CamManager->GetCameraBoom();
 		break;
-	}
 
-	PawnController->SetForwardComponentReference(CamRotUDTarget);
-	PawnController->SetUpComponentReference(RootComponent);
-	PawnController->SetRightComponentReference(CamRotLRTarget);
+	case TDW:
+		CamManager->AttachToComponent(RootComponent);
+		CamManager->SetTargetOffset(RootComponent->GetComponentLocation() + (RootComponent->GetUpVector() * 1000));
+		CamManager->LookTowards(-RootComponent->GetUpVector());
+		bAllowRotation = false;
+		break;
+
+	case SCW:
+		bAllowRotation = false;
+		break;
+	}
 }
 
-UPawnController* AControllablePawnBase::GetPawnController() { return PawnController; }
+UPawnController* AControllablePawnBase::GetPawnController()
+{
+	return PawnController;
+}
 
-UCapsuleComponent* AControllablePawnBase::GetCollider() { return Collider; }
+USceneComponent* AControllablePawnBase::GetTPCamTarget()
+{
+	return TPSCamTarget;
+}
 
-// void UControllablePawnMovement::RotateTowardsMovement(float DeltaTime, float RotationSpeed) const
-// {
-// 	
-// 	//get data from controller
-// 	auto Input = GetControllablePawn()->GetPawnController()->ConsumeMovementInput();
-// 	auto Forward = GetControllablePawn()->GetPawnController()->GetForwardVector();
-// 	auto Right = GetControllablePawn()->GetPawnController()->GetRightVector();
-//
-// 	// don't rotate player if no input exists
-// 	if (Input.X == 0 && Input.Y == 0) return; 
-//
-// 	//calculate rotation
-// 	
-// 	FVector Direction = Velocity;
-// 	FVector ActorLocation = UpdatedComponent->GetComponentLocation();
-// 	FRotator Target = UKismetMathLibrary::FindLookAtRotation(ActorLocation, ActorLocation + Direction);
-// 	//FRotator CalculatedRotation = FMath::RInterpTo(Orientation->GetComponentRotation(), Target, DeltaTime, RotationSpeed);
-// 	
-// 	//Orientation->SetRelativeRotation(CalculatedRotation);
-// }
+USceneComponent* AControllablePawnBase::GetFPCamTarget()
+{
+	return FPSCamTarget;
+}
+
+void AControllablePawnBase::RotateTowardsMovement(float DeltaTime, float RotationSpeed) const
+{
+ 	
+	FVector Direction = PawnMovement->GetVelocity();
+	Direction.Z = 0;
+	
+	FVector ActorLocation = OrientationParent->GetComponentLocation();
+	FRotator Target = UKismetMathLibrary::FindLookAtRotation(ActorLocation, ActorLocation + Direction);
+	FRotator CalculatedRotation = FMath::RInterpTo(OrientationParent->GetComponentRotation(), Target, DeltaTime, RotationSpeed);
+
+	
+	if (Direction.X == 0 && Direction.Y == 0) return;
+	
+	OrientationParent->SetRelativeRotation(CalculatedRotation);
+}
+
+void AControllablePawnBase::CalculateControllerDirectionVectors()
+{
+	PawnController->SetForwardVector(FVector::ForwardVector);
+	PawnController->SetUpVector(RootComponent->GetUpVector());
+	PawnController->SetRightVector(FVector::RightVector);
+	// switch (CurrentPerspective)
+	// {
+	// case FPS:
+	// case TPS:
+	// 	PawnController->SetForwardVector(CamRotLRTarget->GetForwardVector());
+	// 	PawnController->SetUpVector(RootComponent->GetUpVector());
+	// 	PawnController->SetRightVector(CamRotUDTarget->GetRightVector());
+	// 	break;
+	//
+	// case TDW:
+	// 	PawnController->SetForwardVector(FVector::ForwardVector);
+	// 	PawnController->SetUpVector(FVector::UpVector);
+	// 	PawnController->SetRightVector(FVector::RightVector);
+	// 	break;
+	// 	
+	// case SCW:
+	// 	const auto CamManager = Cast<UCustomGameInstanceBase>(GetWorld()->GetGameInstance())->GetCameraManager();
+	// 	auto camBoom = CamManager->GetCameraBoom();
+	// 	PawnController->SetForwardVector(UKismetMathLibrary::ProjectVectorOnToPlane(camBoom->GetForwardVector(), RootComponent->GetUpVector()));
+	// 	PawnController->SetUpVector(RootComponent->GetUpVector());
+	// 	PawnController->SetRightVector(UKismetMathLibrary::ProjectVectorOnToPlane(camBoom->GetRightVector(), RootComponent->GetUpVector()));
+	// 	break;
+	// }
+	
+	
+}

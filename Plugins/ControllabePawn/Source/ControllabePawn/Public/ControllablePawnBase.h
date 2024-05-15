@@ -12,19 +12,17 @@
 UENUM(BlueprintType)
 enum Perspectives
 {
-	FPS     UMETA(DisplayName = "First person"),
-	TPS      UMETA(DisplayName = "Third person"),
+	FPS     UMETA(DisplayName = "First person view"),
+	TPS     UMETA(DisplayName = "Third person view"),
+	TDW		UMETA(DisplayName = "Top down view"),
+	SCW     UMETA(DisplayName = "Static Camera view"),
 };
 
 UCLASS()
 class CONTROLLABEPAWN_API AControllablePawnBase : public APawn
 {
 	GENERATED_BODY()
-
-public:
-	// Sets default values for this pawn's properties
-	AControllablePawnBase();
-
+	
 protected:
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
@@ -59,12 +57,24 @@ protected:
 	UPROPERTY(EditAnywhere, Category = "Debug", meta=(DisplayName="Allow jumping while debugging"))
 	bool bDebugAllowJump = true;
 
+	void RotateTowardsMovement(float DeltaTime, float RotationSpeed) const;
+	void CalculateControllerDirectionVectors();
+
 	UPROPERTY()
 	USceneComponent* CamRotLRTarget;
 	UPROPERTY()
 	USceneComponent* CamRotUDTarget;
 
-public:	
+	Perspectives CurrentPerspective;
+
+	// allowing rotations, mostly used for disabling rotations on different camera perspectives
+	bool bAllowRotation;
+public:
+	
+	// Sets default values for this pawn's properties
+	AControllablePawnBase();
+
+	virtual void TickActor(float DeltaTime, ELevelTick TickType, FActorTickFunction& ThisTickFunction) override;
 
 	//call this function to set pawn to jump
 	UFUNCTION(BlueprintCallable)
@@ -91,5 +101,6 @@ public:
 	virtual void SetPerspective(Perspectives NewPerspective);
 
 	UPawnController* GetPawnController();
-	UCapsuleComponent* GetCollider();
+	USceneComponent* GetTPCamTarget();
+	USceneComponent* GetFPCamTarget();
 };

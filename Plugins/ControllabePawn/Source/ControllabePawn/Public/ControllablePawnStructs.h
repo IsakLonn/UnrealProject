@@ -7,7 +7,7 @@
 #include "ControllablePawnStructs.generated.h"
 
 USTRUCT()
-struct FMoveSettings
+struct FMoveSettingss
 {
 	GENERATED_BODY()
 

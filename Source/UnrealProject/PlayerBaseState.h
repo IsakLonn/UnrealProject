@@ -4,14 +4,14 @@
 
 #include "CoreMinimal.h"
 #include "ControllablePawnBase.h"
-#include "StateBase.h"
+#include "StateMachine/Core_StateBase.h"
 #include "PlayerBaseState.generated.h"
 
 /**
  * 
  */
 UCLASS()
-class UNREALPROJECT_API UPlayerBaseState : public UStateBase
+class UNREALPROJECT_API UPlayerBaseState : public UCore_StateBase
 {
 	GENERATED_BODY()
 
@@ -24,7 +24,7 @@ protected:
 	AControllablePawnBase* PlayerRef;
 
 	UPROPERTY(EditAnywhere)
-	FMoveSettings MovementStateSettings;
+	FMoveSettingss MovementStateSettings;
 
 	virtual void OnJumpInput();
 	virtual void OnMovementInput(FVector Input);

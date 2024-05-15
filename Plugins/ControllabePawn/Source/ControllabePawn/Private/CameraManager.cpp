@@ -4,6 +4,7 @@
 #include "CameraManager.h"
 
 #include "Kismet/GameplayStatics.h"
+#include "Kismet/KismetMathLibrary.h"
 
 // Sets default values
 ACameraManager::ACameraManager()
@@ -22,35 +23,24 @@ ACameraManager::ACameraManager()
 
 }
 
-void ACameraManager::AttachToComponent(USceneComponent* Target, float TargetArmLength, bool SnapToTarget) const
+void ACameraManager::AttachToComponent(USceneComponent* Target) const
 {
-	Target = Target != nullptr ? Target : root;
-	const FAttachmentTransformRules AttachmentTransformRules = SnapToTarget ? FAttachmentTransformRules::SnapToTargetNotIncludingScale : FAttachmentTransformRules::KeepWorldTransform;
-	CameraBoom->AttachToComponent(Target, AttachmentTransformRules);
-	SetTargetArmLength(TargetArmLength);
+	if(Target == nullptr)
+	{
+		UE_LOG(LogTemp, Error, TEXT("Camera attach target was null"));
+		return;
+	}
+	CameraBoom->AttachToComponent(Target, FAttachmentTransformRules::KeepWorldTransform);
 }
 
-void ACameraManager::ReturnCamera() const
-{
-	AttachToComponent(nullptr, 0, false);
-}
-
-void ACameraManager::SetLocation(FVector Location, bool bRelativeLocation) const
-{
-	if(bRelativeLocation) CameraBoom->SetRelativeLocation(Location);
-	else CameraBoom->SetWorldLocation(Location);
-}
-
-void ACameraManager::SetRotation(FRotator Rotation, bool bRelativeRotation) const
-{
-	if(bRelativeRotation) CameraBoom->SetRelativeRotation(Rotation);
-	else CameraBoom->SetWorldRotation(Rotation);
-}
+void ACameraManager::ReturnCamera() const{ AttachToComponent(root); }
 
 void ACameraManager::SetTargetArmLength(float TargetArmLength) const
 {
 	CameraBoom->TargetArmLength = TargetArmLength;
 }
+
+void ACameraManager::SetTargetOffset(FVector offset) { CameraBoom->SetWorldLocation(offset); }
 
 void ACameraManager::SetFOV(float FOV) const
 {
@@ -68,8 +58,19 @@ void ACameraManager::Initiate()
 	{
 		const auto playerController = UGameplayStatics::GetPlayerController(GetWorld(), 0);
 
-		if(playerController != nullptr)playerController->SetViewTarget(this);
+		//if(playerController != nullptr)playerController->SetViewTarget(this);
 	}
+}
+
+void ACameraManager::LookTowards(FVector TargetLocation)
+{
+	
+	FVector ActorLocation = RootComponent->GetComponentLocation();
+	
+	FRotator Target = UKismetMathLibrary::FindLookAtRotation(ActorLocation, ActorLocation + TargetLocation);
+
+	CameraBoom->SetWorldRotation(Target);
+	
 }
 
 USpringArmComponent* ACameraManager::GetCameraBoom() const

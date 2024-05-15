@@ -19,19 +19,21 @@ public:
 
 	//attaches the camera to a new target
 	//FollowDistance sets the target arm length for the spring arm
-	void AttachToComponent(USceneComponent* Target, float TargetArmLength, bool SnapToTarget = true) const;
+	void AttachToComponent(USceneComponent* Target) const;
 
 	//returns the camera to the manager, i.e. reattaches the camera to the manager
 	void ReturnCamera() const;
 
-	void SetLocation(FVector Location, bool bRelativeLocation) const;
-	void SetRotation(FRotator Rotation, bool bRelativeRotation) const;
-
 	void SetTargetArmLength(float TargetArmLength) const;
+
+	//sets the offset from current target
+	void SetTargetOffset(FVector offset);
 
 	void SetFOV(float FOV) const;
 
 	void Initiate();
+
+	void LookTowards(FVector TargetLocation);
 
 	USpringArmComponent* GetCameraBoom() const;
 protected:

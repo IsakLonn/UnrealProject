@@ -17,12 +17,15 @@ public:
 	virtual void TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction) override;
 	virtual void BeginPlay() override;
 	
-	FMoveSettings* GetSettings();
-
+	FMoveSettingss* GetSettings();
+	FVector GetVelocity();
+	
 	//adds force to the pawn
 	UFUNCTION(BlueprintCallable)
 	void AddForce(FVector Direction, float Strength);
 	
+	
+
 protected:
 	
 	//tries to move actor according to input from controller
@@ -52,7 +55,7 @@ protected:
 	UPawnController* GetOwnerController() const;
 	
 	UPROPERTY(EditAnywhere, Category = "Movement settings")
-	FMoveSettings Settings;
+	FMoveSettingss Settings;
 	
 	FVector Force;
 	FVector Velocity;

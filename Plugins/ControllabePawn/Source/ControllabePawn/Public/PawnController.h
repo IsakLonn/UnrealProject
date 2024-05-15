@@ -14,9 +14,9 @@ class CONTROLLABEPAWN_API UPawnController : public UActorComponent
 
 public:	
 
-	void SetUpComponentReference(USceneComponent* Component);
-	void SetForwardComponentReference(USceneComponent* Component);
-	void SetRightComponentReference(USceneComponent* Component);
+	void SetUpVector(FVector Vector);
+	void SetForwardVector(FVector Vector);
+	void SetRightVector(FVector Vector);
 
 	FVector GetForwardVector() const;
 	FVector GetRightVector() const;
@@ -42,12 +42,10 @@ protected:
 	
 	FVector2D RotationInput;
 	FVector MovementInput;
-	UPROPERTY()
-	USceneComponent* ForwardComponent;
-	UPROPERTY()
-	USceneComponent* RightComponent;
-	UPROPERTY()
-	USceneComponent* UpComponent;
+	
+	FVector Forward;
+	FVector Right;
+	FVector Up;
 
 	bool IsJumping;
 };

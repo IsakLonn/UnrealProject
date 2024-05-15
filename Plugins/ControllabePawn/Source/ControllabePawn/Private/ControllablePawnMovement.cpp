@@ -38,6 +38,8 @@ void UControllablePawnMovement::CalculateVelocity()
 	FVector Up = GetOwnerController()->GetUpVector();
 	FVector Input = GetOwnerController()->ConsumeMovementInput();
 
+	UE_LOG(LogTemp, Warning, TEXT("The vector value is: %s"), *Input.ToString());
+	
 	//Get desired movement
 	auto InputVelocity = ((Forward * Input.X) + (Right * Input.Y) + (Up * Input.Z));
 
@@ -160,7 +162,9 @@ void UControllablePawnMovement::FinalMove(float DeltaTime)
 	}
 }
 
-FMoveSettings* UControllablePawnMovement::GetSettings() { return &Settings; }
+FMoveSettingss* UControllablePawnMovement::GetSettings() { return &Settings; }
+
+FVector UControllablePawnMovement::GetVelocity() { return Velocity; }
 
 void UControllablePawnMovement::CalculateForce(float DeltaTime) { Force = FMath::Lerp(Force, FVector::Zero(),Settings.ForceDissipationPerFrame * DeltaTime); }
 

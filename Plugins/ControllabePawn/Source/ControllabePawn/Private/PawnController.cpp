@@ -3,17 +3,17 @@
 
 #include "PawnController.h"
 
-void UPawnController::SetUpComponentReference(USceneComponent* Component) { UpComponent = Component; }
+void UPawnController::SetUpVector(FVector Vector) { Up = Vector; }
 
-void UPawnController::SetForwardComponentReference(USceneComponent* Component) { ForwardComponent = Component; }
+void UPawnController::SetForwardVector(FVector Vector) { Forward = Vector; }
 
-void UPawnController::SetRightComponentReference(USceneComponent* Component) { RightComponent = Component; }
+void UPawnController::SetRightVector(FVector Vector) { Right = Vector; }
 
-FVector UPawnController::GetForwardVector() const { return ForwardComponent != nullptr ? ForwardComponent->GetForwardVector() : FVector::Zero(); }
+FVector UPawnController::GetForwardVector() const { return Forward;}
 
-FVector UPawnController::GetRightVector() const { return RightComponent != nullptr ? RightComponent->GetRightVector() : FVector::Zero(); }
+FVector UPawnController::GetRightVector() const { return Right; }
 
-FVector UPawnController::GetUpVector() const { return UpComponent != nullptr ? UpComponent->GetUpVector() : FVector::Zero(); }
+FVector UPawnController::GetUpVector() const { return Up; }
 
 void UPawnController::SetMovementInputX(float Value) { MovementInput.X = Value; }
 
